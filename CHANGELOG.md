@@ -14,3 +14,5 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - **[Module 4]** Implemented Organization Management (multi-tenant foundation).
 - Refactored Auth Service to automatically create Organizations upon owner registration.
 - Added Organization Settings frontend component with data loading/updating.
+- **[Module 5]** Implemented Property Management module with multi-tenancy enforcement.
+- Added properties listing and creation/editing forms on the frontend.

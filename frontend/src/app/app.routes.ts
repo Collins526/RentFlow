@@ -9,5 +9,10 @@ export const routes: Routes = [
     path: 'organization', 
     canActivate: [authGuard],
     loadComponent: () => import('./features/organization/organization-settings.component').then(m => m.OrganizationSettingsComponent) 
+  },
+  {
+    path: 'properties',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/properties/property-list.component').then(m => m.PropertyListComponent)
   }
 ];

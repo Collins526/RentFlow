@@ -4,7 +4,7 @@
 - [x] 2. Users (Core Entity/Security layer)
 - [x] 3. Roles & Permissions (Core Entity/Security layer)
 - [x] 4. Organizations
-- [ ] 5. Properties
+- [x] 5. Properties
 - [ ] 6. Blocks
 - [ ] 7. Units
 - [ ] 8. Tenants
