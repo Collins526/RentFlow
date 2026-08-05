@@ -1,0 +1,27 @@
+# Project Tasks
+
+- [x] 1. Authentication
+- [x] 2. Users (Core Entity/Security layer)
+- [x] 3. Roles & Permissions (Core Entity/Security layer)
+- [ ] 4. Organizations
+- [ ] 5. Properties
+- [ ] 6. Blocks
+- [ ] 7. Units
+- [ ] 8. Tenants
+- [ ] 9. Tenancies
+- [ ] 10. Leases
+- [ ] 11. Rent Billing
+- [ ] 12. Rent Ledger
+- [ ] 13. Payments
+- [ ] 14. Advance Rent Allocation
+- [ ] 15. Security Deposits
+- [ ] 16. Deposit Refunds
+- [ ] 17. Move-In Inspections
+- [ ] 18. Move-Out Inspections
+- [ ] 19. Maintenance
+- [ ] 20. Documents
+- [ ] 21. Notifications
+- [ ] 22. Reports
+- [ ] 23. Dashboard
+- [ ] 24. M-Pesa Integration
+- [ ] 25. AI Features
