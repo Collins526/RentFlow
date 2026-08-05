@@ -5,7 +5,7 @@
 - [x] 3. Roles & Permissions (Core Entity/Security layer)
 - [x] 4. Organizations
 - [x] 5. Properties
-- [ ] 6. Blocks
+- [x] 6. Blocks
 - [ ] 7. Units
 - [ ] 8. Tenants
 - [ ] 9. Tenancies

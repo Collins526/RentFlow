@@ -14,5 +14,10 @@ export const routes: Routes = [
     path: 'properties',
     canActivate: [authGuard],
     loadComponent: () => import('./features/properties/property-list.component').then(m => m.PropertyListComponent)
+  },
+  {
+    path: 'properties/:id',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/properties/property-detail.component').then(m => m.PropertyDetailComponent)
   }
 ];

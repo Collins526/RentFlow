@@ -16,3 +16,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Added Organization Settings frontend component with data loading/updating.
 - **[Module 5]** Implemented Property Management module with multi-tenancy enforcement.
 - Added properties listing and creation/editing forms on the frontend.
+- **[Module 6]** Implemented Blocks Management (sub-divide properties into buildings/wings).
+- Added Property Detail view with nested blocks table and block creation/editing forms.
+- Implemented cascading multi-tenancy verification through parent Property ownership.

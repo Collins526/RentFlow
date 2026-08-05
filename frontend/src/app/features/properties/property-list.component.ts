@@ -1,5 +1,6 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { MatTableModule } from '@angular/material/table';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatButtonModule } from '@angular/material/button';
@@ -88,14 +89,17 @@ import { PropertyFormComponent } from './property-form.component';
           <ng-container matColumnDef="actions">
             <th mat-header-cell *matHeaderCellDef></th>
             <td mat-cell *matCellDef="let property" class="text-right">
-              <button mat-icon-button color="primary" (click)="openPropertyForm(property)">
+              <button mat-icon-button (click)="navigateToProperty(property); $event.stopPropagation()">
+                <mat-icon>visibility</mat-icon>
+              </button>
+              <button mat-icon-button color="primary" (click)="openPropertyForm(property); $event.stopPropagation()">
                 <mat-icon>edit</mat-icon>
               </button>
             </td>
           </ng-container>
 
           <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-          <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="hover:bg-gray-50 transition-colors"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="hover:bg-gray-50 transition-colors cursor-pointer" (click)="navigateToProperty(row)"></tr>
           
           <tr class="mat-row" *matNoDataRow>
             <td class="mat-cell text-center py-12 text-gray-500" colspan="5">
@@ -119,6 +123,7 @@ import { PropertyFormComponent } from './property-form.component';
 export class PropertyListComponent implements OnInit {
   private propertyService = inject(PropertyService);
   private dialog = inject(MatDialog);
+  private router = inject(Router);
 
   properties = signal<Property[]>([]);
   isLoading = signal(true);
@@ -163,8 +168,12 @@ export class PropertyListComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.loadProperties(); // Reload list
+        this.loadProperties();
       }
     });
+  }
+
+  navigateToProperty(property: Property) {
+    this.router.navigate(['/properties', property.id]);
   }
 }
