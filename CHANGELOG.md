@@ -11,3 +11,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - **[Module 1]** Implemented Authentication Module (Spring Security, JWT, Refresh Tokens).
 - Scaffolded Angular 18 frontend with TailwindCSS and Angular Material.
 - Integrated Login and Registration components with Reactive Forms and Signals.
+- **[Module 4]** Implemented Organization Management (multi-tenant foundation).
+- Refactored Auth Service to automatically create Organizations upon owner registration.
+- Added Organization Settings frontend component with data loading/updating.

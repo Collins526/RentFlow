@@ -11,6 +11,7 @@ import com.rentflow.entity.User;
 import com.rentflow.exception.BadRequestException;
 import com.rentflow.exception.ResourceNotFoundException;
 import com.rentflow.exception.UnauthorizedException;
+import com.rentflow.repository.OrganizationRepository;
 import com.rentflow.repository.RefreshTokenRepository;
 import com.rentflow.repository.RoleRepository;
 import com.rentflow.repository.UserRepository;
@@ -40,6 +41,7 @@ public class AuthServiceImpl implements AuthService {
     private final AuthenticationManager authenticationManager;
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
+    private final OrganizationRepository organizationRepository;
     private final RefreshTokenRepository refreshTokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtils jwtUtils;
@@ -70,16 +72,19 @@ public class AuthServiceImpl implements AuthService {
             throw new BadRequestException("Error: Email is already in use!");
         }
 
-        // Create new user's account
+        // Create new Organization
+        com.rentflow.entity.Organization organization = com.rentflow.entity.Organization.builder()
+                .name(request.getOrganizationName())
+                .build();
+        organization = organizationRepository.save(organization);
+
         User user = User.builder()
                 .firstName(request.getFirstName())
                 .lastName(request.getLastName())
                 .email(request.getEmail())
                 .passwordHash(passwordEncoder.encode(request.getPassword()))
                 .status("ACTIVE")
-                // A newly registered user via this endpoint is usually an Org Owner.
-                // Organization creation will be properly handled in the Organization module.
-                // For now, we will just assign the ORGANIZATION_OWNER role.
+                .organizationId(organization.getId())
                 .build();
 
         // Assign Role

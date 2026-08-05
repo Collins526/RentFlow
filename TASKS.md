@@ -3,7 +3,7 @@
 - [x] 1. Authentication
 - [x] 2. Users (Core Entity/Security layer)
 - [x] 3. Roles & Permissions (Core Entity/Security layer)
-- [ ] 4. Organizations
+- [x] 4. Organizations
 - [ ] 5. Properties
 - [ ] 6. Blocks
 - [ ] 7. Units
