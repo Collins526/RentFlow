@@ -1,14 +1,16 @@
 spring:
+  config:
+    import: optional:dotenv
   application:
     name: rentflow-backend
   datasource:
-    url: jdbc:postgresql://localhost:5432/rentflow
-    username: postgres
-    password: postgrespassword
+    url: ${SPRING_DATASOURCE_URL:${DB_URL:jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:rentflow}?sslmode=require}}
+    username: ${SPRING_DATASOURCE_USERNAME:${DB_USER:postgres}}
+    password: ${SPRING_DATASOURCE_PASSWORD:${DB_PASSWORD:postgrespassword}}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
-      ddl-auto: validate # Flyway handles schema
+      ddl-auto: validate
     show-sql: true
     properties:
       hibernate:
@@ -22,5 +24,21 @@ spring:
 app:
   jwt:
     secret: 92837498237498237498237489237489237498237498237498237498237489237489237489237489
-    access-token-expiration-ms: 900000 # 15 minutes
-    refresh-token-expiration-ms: 604800000 # 7 days
+    access-token-expiration-ms: 900000
+    refresh-token-expiration-ms: 604800000
+  mpesa:
+    base-url: ${MPESA_BASE_URL}
+    consumer-key: ${MPESA_CONSUMER_KEY}
+    consumer-secret: ${MPESA_CONSUMER_SECRET}
+    short-code: ${MPESA_SHORTCODE}
+    passkey: ${MPESA_PASSKEY}
+    callback-url: ${MPESA_CALLBACK_URL}
+    environment: ${MPESA_ENVIRONMENT}
+    account-reference: RentFlow
+    transaction-desc: Rent payment
+  ai:
+    base-url: https://api.openai.com/v1/completions
+    api-key: ${OPENAI_API_KEY:}
+    default-model: gpt-4o-mini
+    max-tokens: 512
+    temperature: 0.7

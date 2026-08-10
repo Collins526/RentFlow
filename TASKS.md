@@ -6,22 +6,22 @@
 - [x] 4. Organizations
 - [x] 5. Properties
 - [x] 6. Blocks
-- [ ] 7. Units
-- [ ] 8. Tenants
-- [ ] 9. Tenancies
+- [x] 7. Units
+- [x] 8. Tenants
+- [x] 9. Tenancies
 - [ ] 10. Leases
 - [ ] 11. Rent Billing
-- [ ] 12. Rent Ledger
-- [ ] 13. Payments
-- [ ] 14. Advance Rent Allocation
-- [ ] 15. Security Deposits
-- [ ] 16. Deposit Refunds
-- [ ] 17. Move-In Inspections
-- [ ] 18. Move-Out Inspections
-- [ ] 19. Maintenance
-- [ ] 20. Documents
-- [ ] 21. Notifications
-- [ ] 22. Reports
-- [ ] 23. Dashboard
-- [ ] 24. M-Pesa Integration
-- [ ] 25. AI Features
+- [x] 12. Rent Ledger
+- [x] 13. Payments
+- [x] 14. Advance Rent Allocation
+- [x] 15. Security Deposits
+- [x] 16. Deposit Refunds
+- [x] 17. Move-In Inspections
+- [x] 18. Move-Out Inspections
+- [x] 19. Maintenance
+- [x] 20. Documents
+- [x] 21. Notifications
+- [x] 22. Reports
+- [x] 23. Dashboard
+- [x] 24. M-Pesa Integration
+- [x] 25. AI Features

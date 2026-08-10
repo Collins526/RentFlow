@@ -6,12 +6,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import org.springframework.stereotype.Repository;
+
 
 import java.util.Optional;
 import java.util.UUID;
 
-@Repository
+
 public interface BlockRepository extends JpaRepository<Block, UUID> {
 
     Page<Block> findByPropertyId(UUID propertyId, Pageable pageable);
@@ -20,4 +20,9 @@ public interface BlockRepository extends JpaRepository<Block, UUID> {
            "WHERE b.id = :blockId AND p.organizationId = :organizationId")
     Optional<Block> findByIdAndOrganizationId(@Param("blockId") UUID blockId,
                                               @Param("organizationId") UUID organizationId);
+
+    /** Blocks reach an organization only through their parent property. */
+    @Query("SELECT COUNT(b) FROM Block b JOIN Property p ON b.propertyId = p.id "
+            + "WHERE p.organizationId = :organizationId")
+    long countByOrganizationId(@Param("organizationId") UUID organizationId);
 }

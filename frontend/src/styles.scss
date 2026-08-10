@@ -36,9 +36,7 @@ body {
   margin: 0;
   height: 100%;
 }
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+// Tailwind is loaded from src/tailwind.css (see angular.json styles).
 
 html,
 body {
@@ -48,4 +46,35 @@ body {
   margin: 0;
   font-family: Roboto, 'Helvetica Neue', sans-serif;
   background-color: #f3f4f6;
+}
+
+// Toast palette. MatSnackBar renders in an overlay outside every component, so
+// these have to be global; ToastService applies the classes.
+.rf-toast {
+  --mat-snack-bar-supporting-text-color: #ffffff;
+
+  .mat-mdc-snack-bar-label {
+    color: #ffffff;
+  }
+
+  .mat-mdc-snack-bar-action {
+    --mat-snack-bar-button-color: #ffffff;
+    color: #ffffff;
+  }
+}
+
+.rf-toast-success .mdc-snackbar__surface {
+  background-color: #047857 !important;
+}
+
+.rf-toast-info .mdc-snackbar__surface {
+  background-color: #1d4ed8 !important;
+}
+
+.rf-toast-warning .mdc-snackbar__surface {
+  background-color: #b45309 !important;
+}
+
+.rf-toast-error .mdc-snackbar__surface {
+  background-color: #b91c1c !important;
 }

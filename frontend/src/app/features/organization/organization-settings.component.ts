@@ -23,7 +23,7 @@ import { OrganizationService } from '../../core/services/organization/organizati
     MatSnackBarModule
   ],
   template: `
-    <div class="p-6 max-w-4xl mx-auto">
+    <div class="max-w-4xl mx-auto">
       <div class="mb-8">
         <h1 class="text-3xl font-bold text-gray-900">Organization Settings</h1>
         <p class="text-gray-600 mt-2">Manage your company's profile and contact information.</p>

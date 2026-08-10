@@ -25,7 +25,7 @@ import { PropertyFormComponent } from './property-form.component';
     MatChipsModule
   ],
   template: `
-    <div class="p-6 max-w-7xl mx-auto">
+    <div>
       <div class="flex justify-between items-center mb-8">
         <div>
           <h1 class="text-3xl font-bold text-gray-900">Properties</h1>
