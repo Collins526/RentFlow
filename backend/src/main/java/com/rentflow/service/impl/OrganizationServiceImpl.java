@@ -64,6 +64,22 @@ public class OrganizationServiceImpl implements OrganizationService {
         return OrganizationMapper.toDto(updatedOrganization);
     }
 
+    @Override
+    @Transactional
+    public OrganizationResponse updateOrganizationById(UUID id, OrganizationUpdateRequest request) {
+        Organization organization = organizationRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Organization not found with id: " + id));
+
+        organization.setName(request.getName());
+        organization.setEmail(request.getEmail());
+        organization.setPhone(request.getPhone());
+        organization.setAddress(request.getAddress());
+        organization.setLogoUrl(request.getLogoUrl());
+
+        Organization updatedOrganization = organizationRepository.save(organization);
+        return OrganizationMapper.toDto(updatedOrganization);
+    }
+
     private UUID getCurrentUserOrganizationId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()) {

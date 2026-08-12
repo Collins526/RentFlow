@@ -16,9 +16,11 @@ public class TenancyResponse {
     private UUID organizationId;
     private UUID tenantId;
     private String tenantName;
+    private String tenantEmail;
     private UUID unitId;
     private String unitNumber;
     private UUID propertyId;
+    private String tenantLoginPassword;
     private LocalDate startDate;
     private LocalDate endDate;
     private TenancyStatus status;

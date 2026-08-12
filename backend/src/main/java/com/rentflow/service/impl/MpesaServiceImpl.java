@@ -44,16 +44,7 @@ public class MpesaServiceImpl implements MpesaService {
     private final MpesaProperties mpesaProperties;
     private final PaymentRepository paymentRepository;
     private final RentInvoiceRepository rentInvoiceRepository;
-    private final RestTemplate restTemplate;
-
-    public MpesaServiceImpl(MpesaProperties mpesaProperties,
-                            PaymentRepository paymentRepository,
-                            RentInvoiceRepository rentInvoiceRepository) {
-        this.mpesaProperties = mpesaProperties;
-        this.paymentRepository = paymentRepository;
-        this.rentInvoiceRepository = rentInvoiceRepository;
-        this.restTemplate = new RestTemplate();
-    }
+    private final RestTemplate restTemplate = new RestTemplate();
 
     @Override
     public MpesaPaymentResponse initiateStkPush(String phoneNumber,
@@ -167,8 +158,7 @@ public class MpesaServiceImpl implements MpesaService {
             throw new BadRequestException("M-Pesa callback payload is empty");
         }
 
-        Map<String, Object> body = getMap(callbackPayload, "Body");
-        Map<String, Object> stkCallback = getMap(body, "stkCallback");
+        Map<String, Object> stkCallback = extractStkCallback(callbackPayload);
         String checkoutRequestId = Objects.toString(stkCallback.get("CheckoutRequestID"), null);
         if (checkoutRequestId == null || checkoutRequestId.isBlank()) {
             throw new BadRequestException("Invalid M-Pesa callback payload: missing CheckoutRequestID");
@@ -215,18 +205,45 @@ public class MpesaServiceImpl implements MpesaService {
         }
     }
 
+    private Map<String, Object> extractStkCallback(Map<String, Object> payload) {
+        if (payload.containsKey("stkCallback") && payload.get("stkCallback") instanceof Map<?, ?>) {
+            return toStringKeyMap(payload.get("stkCallback"));
+        }
+
+        if (payload.containsKey("Body") && payload.get("Body") instanceof Map<?, ?> body) {
+            Map<String, Object> bodyMap = toStringKeyMap(body);
+            if (bodyMap.containsKey("stkCallback") && bodyMap.get("stkCallback") instanceof Map<?, ?>) {
+                return toStringKeyMap(bodyMap.get("stkCallback"));
+            }
+        }
+
+        if (payload.containsKey("ResultCode") || payload.containsKey("CheckoutRequestID") || payload.containsKey("ResultDesc")) {
+            return payload;
+        }
+
+        throw new BadRequestException("Invalid M-Pesa callback payload: missing stkCallback data");
+    }
+
     private Map<String, Object> getMap(Map<String, Object> source, String key) {
         Object value = source.get(key);
         if (value instanceof Map<?, ?> map) {
-            Map<String, Object> result = new LinkedHashMap<>();
-            for (Map.Entry<?, ?> entry : map.entrySet()) {
-                if (entry.getKey() instanceof String keyName) {
-                    result.put(keyName, entry.getValue());
-                }
-            }
-            return result;
+            return toStringKeyMap(map);
         }
         throw new BadRequestException("Invalid M-Pesa callback payload: missing or malformed " + key);
+    }
+
+    private Map<String, Object> toStringKeyMap(Object value) {
+        if (!(value instanceof Map<?, ?> map)) {
+            throw new BadRequestException("Invalid M-Pesa callback payload: expected a map");
+        }
+
+        Map<String, Object> result = new LinkedHashMap<>();
+        for (Map.Entry<?, ?> entry : map.entrySet()) {
+            if (entry.getKey() instanceof String keyName) {
+                result.put(keyName, entry.getValue());
+            }
+        }
+        return result;
     }
 
     private String encodePassword(String shortCode, String passkey, String timestamp) {

@@ -10,6 +10,7 @@ import { ToastService, resolveApiMessage } from '../../../core/services/toast.se
 import { formatEnumLabel } from '../../../core/services/unit/unit.service';
 import { Tenant, TenantType } from '../../../core/models/tenant.model';
 import { TenantForm } from '../tenant-form/tenant-form';
+import { TenancyForm } from '../../tenancies/tenancy-form/tenancy-form';
 import {
   ConfirmDialogComponent,
   DataTableCellDirective,
@@ -85,6 +86,10 @@ import {
           <button mat-menu-item (click)="openTenantForm(tenant)">
             <mat-icon>edit</mat-icon>
             <span>Edit</span>
+          </button>
+          <button mat-menu-item (click)="openTenancyFormForTenant(tenant)">
+            <mat-icon>apartment</mat-icon>
+            <span>Assign unit</span>
           </button>
           <button mat-menu-item (click)="deactivateTenant(tenant)">
             <mat-icon color="warn">person_off</mat-icon>
@@ -176,10 +181,26 @@ export class TenantList implements OnInit {
       if (result) {
         this.toast.success(tenant ? 'Tenant updated.' : 'Tenant added.');
         this.loadTenants();
+        if (!tenant) {
+          this.openTenancyFormForTenant(result);
+        }
       }
     });
   }
+  openTenancyFormForTenant(tenant: Tenant): void {
+    const dialogRef = this.dialog.open(TenancyForm, {
+      width: '680px',
+      data: { tenant },
+      disableClose: true
+    });
 
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.toast.success('Unit assigned to tenant.');
+        this.loadTenants();
+      }
+    });
+  }
   deactivateTenant(tenant: Tenant): void {
     const confirmRef = this.dialog.open(ConfirmDialogComponent, {
       width: '440px',

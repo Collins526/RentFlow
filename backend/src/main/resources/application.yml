@@ -1,10 +1,12 @@
 spring:
   config:
-    import: optional:dotenv
+    import:
+      - optional:file:./.env
+      - optional:dotenv
   application:
     name: rentflow-backend
   datasource:
-    url: ${SPRING_DATASOURCE_URL:${DB_URL:jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:rentflow}?sslmode=require}}
+    url: ${SPRING_DATASOURCE_URL:${DB_URL:jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:rentflow}?sslmode=disable}}
     username: ${SPRING_DATASOURCE_USERNAME:${DB_USER:postgres}}
     password: ${SPRING_DATASOURCE_PASSWORD:${DB_PASSWORD:postgrespassword}}
     driver-class-name: org.postgresql.Driver
@@ -27,13 +29,13 @@ app:
     access-token-expiration-ms: 900000
     refresh-token-expiration-ms: 604800000
   mpesa:
-    base-url: ${MPESA_BASE_URL}
+    base-url: ${MPESA_BASE_URL:https://sandbox.safaricom.co.ke}
     consumer-key: ${MPESA_CONSUMER_KEY}
     consumer-secret: ${MPESA_CONSUMER_SECRET}
     short-code: ${MPESA_SHORTCODE}
     passkey: ${MPESA_PASSKEY}
-    callback-url: ${MPESA_CALLBACK_URL}
-    environment: ${MPESA_ENVIRONMENT}
+    callback-url: ${MPESA_CALLBACK_URL:https://rentflow-sandbox.example.com/api/v1/mpesa/callback}
+    environment: ${MPESA_ENVIRONMENT:sandbox}
     account-reference: RentFlow
     transaction-desc: Rent payment
   ai:

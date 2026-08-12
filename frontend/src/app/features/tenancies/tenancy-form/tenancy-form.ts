@@ -1,7 +1,7 @@
 import { Component, Inject, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
+import { MatDialog, MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
@@ -17,6 +17,7 @@ import { PropertyService, Property } from '../../../core/services/property/prope
 import { UnitService, Unit, formatEnumLabel } from '../../../core/services/unit/unit.service';
 import { Tenancy, TenancyRequest, TenancyStatus, TENANCY_STATUSES } from '../../../core/models/tenancy.model';
 import { Tenant, TenantType } from '../../../core/models/tenant.model';
+import { TenantCredentialsDialog } from '../tenant-credentials-dialog/tenant-credentials-dialog';
 
 @Component({
   selector: 'app-tenancy-form',
@@ -32,7 +33,8 @@ import { Tenant, TenantType } from '../../../core/models/tenant.model';
     MatIconModule,
     MatDatepickerModule,
     MatNativeDateModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    TenantCredentialsDialog
   ],
   template: `
     <h2 mat-dialog-title>{{ isEdit() ? 'Edit Tenancy' : 'Create Tenancy' }}</h2>
@@ -150,6 +152,7 @@ export class TenancyForm implements OnInit {
   private tenantService = inject(TenantService);
   private propertyService = inject(PropertyService);
   private unitService = inject(UnitService);
+  private dialog = inject(MatDialog);
 
   form: FormGroup;
   readonly statuses = TENANCY_STATUSES;
@@ -307,6 +310,31 @@ export class TenancyForm implements OnInit {
       next: res => {
         this.isSubmitting.set(false);
         this.dialogRef.close(res.data);
+
+        if (res.data?.tenantLoginPassword) {
+          this.dialog.open(TenantCredentialsDialog, {
+            width: '520px',
+            data: {
+              email: res.data.tenantEmail ?? request.tenantId,
+              password: res.data.tenantLoginPassword,
+              tenantName: this.tenantLabel(
+                this.tenants().find(t => t.id === request.tenantId) ?? {
+                  id: request.tenantId,
+                  organizationId: '',
+                  tenantType: TenantType.INDIVIDUAL,
+                  firstName: 'Tenant',
+                  lastName: '',
+                  email: '',
+                  phoneNumber: '',
+                  status: '' as string,
+                  createdAt: '',
+                  updatedAt: ''
+                }
+              ),
+              unitNumber: this.units().find(u => u.id === request.unitId)?.unitNumber ?? ''
+            }
+          });
+        }
       },
       error: err => {
         this.isSubmitting.set(false);

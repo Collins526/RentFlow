@@ -46,6 +46,12 @@ public class User extends BaseEntity {
     @Column(name = "organization_id")
     private UUID organizationId;
 
+    @Column(name = "tenant_id")
+    private UUID tenantId;
+
+    @Column(name = "unit_id")
+    private UUID unitId;
+
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
         name = "user_roles",

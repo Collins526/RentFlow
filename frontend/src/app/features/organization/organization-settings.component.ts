@@ -7,7 +7,9 @@ import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { OrganizationService } from '../../core/services/organization/organization.service';
+import { OrganizationService, Organization } from '../../core/services/organization/organization.service';
+import { AuthService } from '../../core/services/auth.service';
+import { Role } from '../../core/auth/roles';
 
 @Component({
   selector: 'app-organization-settings',
@@ -35,6 +37,12 @@ import { OrganizationService } from '../../core/services/organization/organizati
 
       <mat-card *ngIf="!isLoadingData()" class="!rounded-2xl !shadow-sm border border-gray-100">
         <mat-card-content class="p-6">
+          <div *ngIf="orgs()" class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Organization</label>
+            <select class="w-full p-2 border rounded" [value]="selectedOrgId()" (change)="onOrgSelect($event)">
+              <option *ngFor="let o of orgs()" [value]="o.id">{{ o.name }}</option>
+            </select>
+          </div>
           <form [formGroup]="orgForm" (ngSubmit)="onSubmit()" class="space-y-6">
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -95,9 +103,12 @@ export class OrganizationSettingsComponent implements OnInit {
   private fb = inject(FormBuilder);
   private orgService = inject(OrganizationService);
   private snackBar = inject(MatSnackBar);
+  private auth = inject(AuthService);
 
   isLoadingData = signal(true);
   isSaving = signal(false);
+  orgs = signal<Organization[] | null>(null);
+  selectedOrgId = signal<string | null>(null);
 
   orgForm: FormGroup = this.fb.group({
     name: ['', [Validators.required, Validators.maxLength(100)]],
@@ -112,6 +123,25 @@ export class OrganizationSettingsComponent implements OnInit {
   }
 
   loadOrganization() {
+    // Platform admins may manage any registered organization; load list
+    if (this.auth.hasRole(Role.PlatformAdmin)) {
+      this.orgService.getAllOrganizations().subscribe({
+        next: (res) => {
+          this.orgs.set(res.data?.content ?? []);
+          if (this.orgs() && this.orgs()!.length > 0) {
+            this.selectedOrgId.set(this.orgs()![0].id);
+            this.loadOrganizationById(this.selectedOrgId()!);
+          }
+          this.isLoadingData.set(false);
+        },
+        error: () => {
+          this.snackBar.open('Failed to load organizations', 'Close', { duration: 3000 });
+          this.isLoadingData.set(false);
+        }
+      });
+      return;
+    }
+
     this.orgService.getMyOrganization().subscribe({
       next: (res) => {
         if (res.data) {
@@ -132,25 +162,72 @@ export class OrganizationSettingsComponent implements OnInit {
     });
   }
 
+  loadOrganizationById(id: string) {
+    this.isLoadingData.set(true);
+    this.orgService.getOrganizationById(id).subscribe({
+      next: (res) => {
+        if (res.data) {
+          this.orgForm.patchValue({
+            name: res.data.name || '',
+            email: res.data.email || '',
+            phone: res.data.phone || '',
+            logoUrl: res.data.logoUrl || '',
+            address: res.data.address || ''
+          });
+        }
+        this.isLoadingData.set(false);
+      },
+      error: () => {
+        this.snackBar.open('Failed to load organization', 'Close', { duration: 3000 });
+        this.isLoadingData.set(false);
+      }
+    });
+  }
+
+  onOrgSelect(event: Event) {
+    const id = (event.target as HTMLSelectElement).value;
+    this.selectedOrgId.set(id);
+    this.loadOrganizationById(id);
+  }
+
   onSubmit() {
     if (this.orgForm.valid) {
       this.isSaving.set(true);
-      this.orgService.updateMyOrganization(this.orgForm.value).subscribe({
-        next: () => {
-          this.isSaving.set(false);
-          this.snackBar.open('Organization updated successfully', 'Close', { 
-            duration: 3000,
-            panelClass: ['bg-green-600', 'text-white']
-          });
-        },
-        error: () => {
-          this.isSaving.set(false);
-          this.snackBar.open('Failed to update organization', 'Close', { 
-            duration: 3000,
-            panelClass: ['bg-red-600', 'text-white']
-          });
-        }
-      });
+      if (this.auth.hasRole(Role.PlatformAdmin) && this.selectedOrgId()) {
+        this.orgService.updateOrganizationById(this.selectedOrgId()!, this.orgForm.value).subscribe({
+          next: () => {
+            this.isSaving.set(false);
+            this.snackBar.open('Organization updated successfully', 'Close', { 
+              duration: 3000,
+              panelClass: ['bg-green-600', 'text-white']
+            });
+          },
+          error: () => {
+            this.isSaving.set(false);
+            this.snackBar.open('Failed to update organization', 'Close', { 
+              duration: 3000,
+              panelClass: ['bg-red-600', 'text-white']
+            });
+          }
+        });
+      } else {
+        this.orgService.updateMyOrganization(this.orgForm.value).subscribe({
+          next: () => {
+            this.isSaving.set(false);
+            this.snackBar.open('Organization updated successfully', 'Close', { 
+              duration: 3000,
+              panelClass: ['bg-green-600', 'text-white']
+            });
+          },
+          error: () => {
+            this.isSaving.set(false);
+            this.snackBar.open('Failed to update organization', 'Close', { 
+              duration: 3000,
+              panelClass: ['bg-red-600', 'text-white']
+            });
+          }
+        });
+      }
     }
   }
 }

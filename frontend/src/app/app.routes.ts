@@ -82,6 +82,30 @@ export const routes: Routes = [
             .then(m => m.OrganizationSettingsComponent)
       },
       {
+        path: 'tenant',
+        canActivate: [roleGuard([Role.Tenant])],
+        data: { breadcrumb: 'Tenant Portal' },
+        loadComponent: () => import('./features/tenant/tenant-portal.component').then(m => m.TenantPortalComponent)
+      },
+      {
+        path: 'tenant/invoices',
+        canActivate: [roleGuard([Role.Tenant])],
+        data: { breadcrumb: 'Invoices' },
+        loadComponent: () => import('./features/tenant/tenant-invoices.component').then(m => m.TenantInvoicesComponent)
+      },
+      {
+        path: 'tenant/payments',
+        canActivate: [roleGuard([Role.Tenant])],
+        data: { breadcrumb: 'Payments' },
+        loadComponent: () => import('./features/tenant/tenant-payments.component').then(m => m.TenantPaymentsComponent)
+      },
+      {
+        path: 'tenant/requests',
+        canActivate: [roleGuard([Role.Tenant])],
+        data: { breadcrumb: 'Maintenance requests' },
+        loadComponent: () => import('./features/tenant/tenant-requests.component').then(m => m.TenantRequestsComponent)
+      },
+      {
         path: 'forbidden',
         data: { breadcrumb: 'Access denied' },
         loadComponent: () =>

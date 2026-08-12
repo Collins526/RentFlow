@@ -12,4 +12,5 @@ public interface OrganizationService {
     OrganizationResponse getOrganizationById(UUID id);
     OrganizationResponse getMyOrganization();
     OrganizationResponse updateMyOrganization(OrganizationUpdateRequest request);
+        OrganizationResponse updateOrganizationById(UUID id, OrganizationUpdateRequest request);
 }

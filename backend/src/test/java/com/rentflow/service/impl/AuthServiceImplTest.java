@@ -80,7 +80,7 @@ class AuthServiceImplTest {
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class))).thenReturn(auth);
         when(jwtUtils.generateJwtToken(auth)).thenReturn("mock-jwt-token");
         when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
-        
+
         RefreshToken refreshToken = new RefreshToken();
         refreshToken.setToken("mock-refresh-token");
         when(refreshTokenRepository.save(any(RefreshToken.class))).thenReturn(refreshToken);
@@ -93,8 +93,44 @@ class AuthServiceImplTest {
         assertEquals("mock-jwt-token", response.getAccessToken());
         assertEquals("mock-refresh-token", response.getRefreshToken());
         assertEquals(user.getEmail(), response.getUser().getEmail());
-        
+
         verify(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
         verify(jwtUtils).generateJwtToken(auth);
+    }
+
+    @Test
+    void login_IncludesTenantScopeInAuthUser() {
+        LoginRequest request = new LoginRequest();
+        request.setEmail("tenant@rentflow.com");
+        request.setPassword("password123");
+
+        UUID tenantId = UUID.randomUUID();
+        UUID unitId = UUID.randomUUID();
+        User user = User.builder()
+                .email(request.getEmail())
+                .firstName("Jane")
+                .lastName("Tenant")
+                .tenantId(tenantId)
+                .unitId(unitId)
+                .roles(new HashSet<>())
+                .build();
+        user.setId(UUID.randomUUID());
+
+        UserDetailsImpl userDetails = new UserDetailsImpl(user, new HashSet<>());
+        Authentication auth = new UsernamePasswordAuthenticationToken(userDetails, null);
+
+        when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class))).thenReturn(auth);
+        when(jwtUtils.generateJwtToken(auth)).thenReturn("mock-jwt-token");
+        when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+
+        RefreshToken refreshToken = new RefreshToken();
+        refreshToken.setToken("mock-refresh-token");
+        when(refreshTokenRepository.save(any(RefreshToken.class))).thenReturn(refreshToken);
+
+        AuthResponse response = authService.login(request);
+
+        assertNotNull(response.getUser());
+        assertEquals(tenantId, response.getUser().getTenantId());
+        assertEquals(unitId, response.getUser().getUnitId());
     }
 }

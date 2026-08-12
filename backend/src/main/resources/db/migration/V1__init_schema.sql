@@ -72,6 +72,7 @@ CREATE TABLE refresh_tokens (
 INSERT INTO roles (id, name, description) VALUES
 (uuid_generate_v4(), 'PLATFORM_ADMIN', 'Platform Administrator'),
 (uuid_generate_v4(), 'ORGANIZATION_OWNER', 'Organization Owner'),
+(uuid_generate_v4(), 'ORGANIZATION_ADMIN', 'Organization Administrator'),
 (uuid_generate_v4(), 'PROPERTY_MANAGER', 'Property Manager'),
 (uuid_generate_v4(), 'ACCOUNTANT', 'Accountant'),
 (uuid_generate_v4(), 'TENANT', 'Tenant');

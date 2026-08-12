@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @RestController
@@ -22,7 +23,7 @@ import java.util.Map;
 public class MpesaController {
 
     private static final String MANAGE_ROLES =
-            "hasRole('ORGANIZATION_OWNER') or hasRole('ACCOUNTANT')";
+            "hasRole('ORGANIZATION_OWNER') or hasRole('ACCOUNTANT') or hasRole('TENANT')";
 
     private final MpesaService mpesaService;
 
@@ -43,9 +44,12 @@ public class MpesaController {
     }
 
     @PostMapping("/callback")
-    public ResponseEntity<ApiResponse<Void>> receiveCallback(
+    public ResponseEntity<ApiResponse<Map<String, String>>> receiveCallback(
             @RequestBody Map<String, Object> callbackPayload) {
         mpesaService.processCallback(callbackPayload);
-        return ResponseEntity.ok(ApiResponse.success(null, "M-Pesa callback received"));
+        Map<String, String> ack = new HashMap<>();
+        ack.put("status", "received");
+        ack.put("message", "M-Pesa callback processed successfully");
+        return ResponseEntity.ok(ApiResponse.success(ack, "M-Pesa callback received"));
     }
 }

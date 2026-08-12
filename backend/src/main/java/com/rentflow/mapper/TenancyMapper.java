@@ -31,6 +31,10 @@ public class TenancyMapper {
     }
 
     public static TenancyResponse toDto(Tenancy tenancy, Tenant tenant, Unit unit) {
+        return toDto(tenancy, tenant, unit, null);
+    }
+
+    public static TenancyResponse toDto(Tenancy tenancy, Tenant tenant, Unit unit, String tenantLoginPassword) {
         if (tenancy == null) {
             return null;
         }
@@ -40,6 +44,7 @@ public class TenancyMapper {
                 .organizationId(tenancy.getOrganizationId())
                 .tenantId(tenancy.getTenantId())
                 .tenantName(displayName(tenant))
+                .tenantEmail(tenant != null ? tenant.getEmail() : null)
                 .unitId(tenancy.getUnitId())
                 .unitNumber(unit != null ? unit.getUnitNumber() : "Unknown unit")
                 .propertyId(unit != null ? unit.getPropertyId() : null)
@@ -48,6 +53,7 @@ public class TenancyMapper {
                 .status(tenancy.getStatus())
                 .rentAmount(tenancy.getRentAmount())
                 .securityDepositAmount(tenancy.getSecurityDepositAmount())
+                .tenantLoginPassword(tenantLoginPassword)
                 .createdAt(tenancy.getCreatedAt())
                 .updatedAt(tenancy.getUpdatedAt())
                 .build();

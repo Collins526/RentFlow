@@ -21,9 +21,9 @@ import java.util.UUID;
 public class PaymentController {
 
     private static final String MANAGE_ROLES =
-            "hasRole('ORGANIZATION_OWNER') or hasRole('ACCOUNTANT')";
+            "hasRole('ORGANIZATION_OWNER') or hasRole('ACCOUNTANT') or hasRole('TENANT')";
     private static final String READ_ROLES =
-            "hasRole('ORGANIZATION_OWNER') or hasRole('PROPERTY_MANAGER') or hasRole('ACCOUNTANT')";
+            "hasRole('ORGANIZATION_OWNER') or hasRole('PROPERTY_MANAGER') or hasRole('ACCOUNTANT') or hasRole('TENANT')";
 
     private final PaymentService paymentService;
 

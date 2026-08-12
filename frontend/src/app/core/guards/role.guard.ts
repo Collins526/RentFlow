@@ -1,7 +1,7 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
-import { RoleName } from '../auth/roles';
+import { Role, RoleName } from '../auth/roles';
 
 /**
  * Route gate for a set of roles. This complements — it does not replace — the
@@ -20,6 +20,11 @@ export function roleGuard(allowed: readonly RoleName[]): CanActivateFn {
       return router.createUrlTree(['/login'], {
         queryParams: { returnUrl: state.url }
       });
+    }
+
+    // Platform-level admins may access any guarded route.
+    if (authService.hasRole(Role.PlatformAdmin)) {
+      return true;
     }
 
     if (authService.hasAnyRole(allowed)) {

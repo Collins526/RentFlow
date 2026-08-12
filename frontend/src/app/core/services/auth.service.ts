@@ -2,13 +2,16 @@ import { Injectable, computed, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 import { Router } from '@angular/router';
-import { RoleName } from '../auth/roles';
+import { Role, RoleName } from '../auth/roles';
 
 export interface AuthUser {
   id: string;
   email: string;
   firstName: string;
   lastName: string;
+  organizationId?: string | null;
+  tenantId?: string | null;
+  unitId?: string | null;
   roles: string[];
   permissions: string[];
 }
@@ -146,7 +149,9 @@ export class AuthService {
 
     // Honour the deep link the guard stashed, so a bookmarked page survives login.
     const returnUrl = this.router.routerState.snapshot.root.queryParams['returnUrl'];
-    this.router.navigateByUrl(returnUrl || '/dashboard');
+    const safeReturnUrl = returnUrl && returnUrl !== '/forbidden' ? returnUrl : null;
+    const redirectTo = safeReturnUrl ?? (this.hasRole(Role.Tenant) ? '/tenant' : '/dashboard');
+    this.router.navigateByUrl(redirectTo);
   }
 
   private clearSession() {

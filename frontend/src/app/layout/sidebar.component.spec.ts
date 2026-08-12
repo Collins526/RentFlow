@@ -68,8 +68,13 @@ describe('SidebarComponent role-based navigation', () => {
     expect(labels).not.toContain('Organization');
   });
 
-  it('shows nothing to a tenant, who has no back-office access', () => {
-    expect(labelsOf(renderFor([Role.Tenant]))).toEqual([]);
+  it('shows tenant portal access to a tenant user', () => {
+    const labels = labelsOf(renderFor([Role.Tenant]));
+
+    expect(labels).toContain('Tenant portal');
+    expect(labels).not.toContain('Dashboard');
+    expect(labels).not.toContain('Properties');
+    expect(labels).not.toContain('Tenants');
   });
 
   it('drops a section heading once all of its items are filtered out', () => {

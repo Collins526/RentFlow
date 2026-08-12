@@ -38,6 +38,25 @@ public final class SecurityUtils {
         return getCurrentUser().getUser().getId();
     }
 
+    public static boolean isPlatformAdmin() {
+        return getCurrentUser().getAuthorities().stream()
+                .anyMatch(authority -> "ROLE_PLATFORM_ADMIN".equals(authority.getAuthority()));
+    }
+
+    public static boolean hasRole(String roleName) {
+        String authority = "ROLE_" + roleName;
+        return getCurrentUser().getAuthorities().stream()
+                .anyMatch(grantedAuthority -> authority.equals(grantedAuthority.getAuthority()));
+    }
+
+    public static UUID getCurrentUserOrganizationIdOrNull() {
+        return getCurrentUser().getUser().getOrganizationId();
+    }
+
+    public static UUID getCurrentUserTenantIdOrNull() {
+        return getCurrentUser().getUser().getTenantId();
+    }
+
     /**
      * The tenant boundary for the current request.
      *
@@ -45,7 +64,7 @@ public final class SecurityUtils {
      *                                   organization, which makes every scoped query meaningless
      */
     public static UUID getCurrentUserOrganizationId() {
-        UUID organizationId = getCurrentUser().getUser().getOrganizationId();
+        UUID organizationId = getCurrentUserOrganizationIdOrNull();
 
         if (organizationId == null) {
             throw new ResourceNotFoundException("User does not belong to any organization");

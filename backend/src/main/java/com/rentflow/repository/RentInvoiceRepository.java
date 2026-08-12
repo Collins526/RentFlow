@@ -5,8 +5,10 @@ import com.rentflow.entity.enums.InvoiceStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
-
+import java.math.BigDecimal;
 import java.util.UUID;
 
 
@@ -28,7 +30,9 @@ public interface RentInvoiceRepository extends JpaRepository<RentInvoice, UUID> 
 
     long countByOrganizationIdAndDueDateBeforeAndStatusNotAndDeletedAtIsNull(UUID organizationId, java.time.LocalDate date, InvoiceStatus status);
 
-    java.math.BigDecimal sumAmountByOrganizationId(UUID organizationId);
+    @Query("select coalesce(sum(r.amount), 0) from RentInvoice r where r.organizationId = :organizationId and r.deletedAt is null")
+    BigDecimal sumAmountByOrganizationId(@Param("organizationId") UUID organizationId);
 
-    java.math.BigDecimal sumAmountByOrganizationIdAndStatus(UUID organizationId, InvoiceStatus status);
+    @Query("select coalesce(sum(r.amount), 0) from RentInvoice r where r.organizationId = :organizationId and r.status = :status and r.deletedAt is null")
+    BigDecimal sumAmountByOrganizationIdAndStatus(@Param("organizationId") UUID organizationId, @Param("status") InvoiceStatus status);
 }

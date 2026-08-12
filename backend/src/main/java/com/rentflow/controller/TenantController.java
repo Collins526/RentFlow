@@ -28,9 +28,9 @@ import java.util.UUID;
 public class TenantController {
 
     private static final String MANAGE_ROLES =
-            "hasRole('ORGANIZATION_OWNER') or hasRole('PROPERTY_MANAGER')";
+            "hasRole('ORGANIZATION_OWNER') or hasRole('ORGANIZATION_ADMIN') or hasRole('PROPERTY_MANAGER')";
     private static final String READ_ROLES =
-            "hasRole('ORGANIZATION_OWNER') or hasRole('PROPERTY_MANAGER') or hasRole('ACCOUNTANT')";
+            "hasRole('ORGANIZATION_OWNER') or hasRole('ORGANIZATION_ADMIN') or hasRole('PROPERTY_MANAGER') or hasRole('ACCOUNTANT')";
 
     private final TenantService tenantService;
 

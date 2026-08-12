@@ -4,6 +4,7 @@ import com.rentflow.dto.request.MaintenanceRequest;
 import com.rentflow.dto.response.MaintenanceRequestResponse;
 import com.rentflow.entity.enums.MaintenanceStatus;
 import com.rentflow.exception.ResourceNotFoundException;
+import com.rentflow.exception.UnauthorizedException;
 import com.rentflow.mapper.MaintenanceRequestMapper;
 import com.rentflow.repository.MaintenanceRequestRepository;
 import com.rentflow.repository.TenantRepository;
@@ -32,6 +33,18 @@ public class MaintenanceRequestServiceImpl implements MaintenanceRequestService 
     @Override
     public MaintenanceRequestResponse createMaintenanceRequest(MaintenanceRequest request) {
         UUID organizationId = SecurityUtils.getCurrentUserOrganizationId();
+
+        if (SecurityUtils.hasRole("TENANT")) {
+            UUID currentTenantId = SecurityUtils.getCurrentUserTenantIdOrNull();
+            UUID currentUnitId = SecurityUtils.getCurrentUser().getUser().getUnitId();
+
+            if (currentTenantId == null || !currentTenantId.equals(request.getTenantId())) {
+                throw new UnauthorizedException("Tenant can only create maintenance requests for their own tenancy");
+            }
+            if (request.getUnitId() != null && currentUnitId != null && !currentUnitId.equals(request.getUnitId())) {
+                throw new UnauthorizedException("Tenant can only create maintenance requests for their assigned unit");
+            }
+        }
 
         tenantRepository.findByIdAndOrganizationId(request.getTenantId(), organizationId)
                 .orElseThrow(() -> new ResourceNotFoundException("Tenant not found"));
@@ -63,6 +76,20 @@ public class MaintenanceRequestServiceImpl implements MaintenanceRequestService 
     @Transactional(readOnly = true)
     public Page<MaintenanceRequestResponse> listMaintenanceRequests(UUID tenantId, UUID tenancyId, UUID unitId, String status, Pageable pageable) {
         UUID organizationId = SecurityUtils.getCurrentUserOrganizationId();
+
+        if (SecurityUtils.hasRole("TENANT")) {
+            UUID currentTenantId = SecurityUtils.getCurrentUserTenantIdOrNull();
+            if (currentTenantId == null) {
+                throw new UnauthorizedException("Tenant is not linked to a tenant record");
+            }
+            if (tenantId != null && !currentTenantId.equals(tenantId)) {
+                throw new UnauthorizedException("Tenant can only view their own maintenance requests");
+            }
+            tenantId = currentTenantId;
+            tenancyId = null;
+            unitId = null;
+        }
+
         Page<com.rentflow.entity.MaintenanceRequest> page;
 
         if (tenantId != null) {
@@ -87,6 +114,14 @@ public class MaintenanceRequestServiceImpl implements MaintenanceRequestService 
         UUID organizationId = SecurityUtils.getCurrentUserOrganizationId();
         com.rentflow.entity.MaintenanceRequest entity = maintenanceRequestRepository.findByIdAndOrganizationIdAndDeletedAtIsNull(id, organizationId)
                 .orElseThrow(() -> new ResourceNotFoundException("Maintenance request not found"));
+
+        if (SecurityUtils.hasRole("TENANT")) {
+            UUID currentTenantId = SecurityUtils.getCurrentUserTenantIdOrNull();
+            if (currentTenantId == null || !currentTenantId.equals(entity.getTenantId())) {
+                throw new UnauthorizedException("Tenant can only access their own maintenance requests");
+            }
+        }
+
         return maintenanceRequestMapper.toResponse(entity);
     }
 

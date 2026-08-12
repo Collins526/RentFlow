@@ -28,6 +28,7 @@ export interface Tenancy {
   organizationId: string;
   tenantId: string;
   tenantName: string;
+  tenantEmail?: string | null;
   unitId: string;
   unitNumber: string;
   propertyId: string | null;
@@ -36,6 +37,7 @@ export interface Tenancy {
   status: TenancyStatus;
   rentAmount?: number | null;
   securityDepositAmount?: number | null;
+  tenantLoginPassword?: string | null;
   createdAt: string;
   updatedAt: string;
 }

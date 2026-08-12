@@ -6,26 +6,32 @@ import com.rentflow.dto.response.TenancyResponse;
 import com.rentflow.entity.Tenancy;
 import com.rentflow.entity.Tenant;
 import com.rentflow.entity.Unit;
+import com.rentflow.entity.User;
 import com.rentflow.entity.enums.OccupancyStatus;
 import com.rentflow.entity.enums.TenancyStatus;
+import com.rentflow.dto.request.CreateUserRequest;
 import com.rentflow.exception.BadRequestException;
 import com.rentflow.exception.ResourceNotFoundException;
 import com.rentflow.mapper.TenancyMapper;
 import com.rentflow.repository.TenancyRepository;
 import com.rentflow.repository.TenantRepository;
 import com.rentflow.repository.UnitRepository;
+import com.rentflow.repository.UserRepository;
 import com.rentflow.security.SecurityUtils;
 import com.rentflow.service.TenancyService;
 import com.rentflow.service.UnitService;
+import com.rentflow.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.security.SecureRandom;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
@@ -57,6 +63,9 @@ public class TenancyServiceImpl implements TenancyService {
     private final TenancyRepository tenancyRepository;
     private final TenantRepository tenantRepository;
     private final UnitRepository unitRepository;
+    private final UserRepository userRepository;
+    private final UserService userService;
+    private final PasswordEncoder passwordEncoder;
     private final UnitService unitService;
 
     @Override
@@ -88,7 +97,8 @@ public class TenancyServiceImpl implements TenancyService {
             unitService.setOccupiedStatusForTenancy(unit.getId(), true);
         }
 
-        return TenancyMapper.toDto(saved, tenant, unit);
+        String tenantLoginPassword = createOrUpdateTenantUser(tenant, unit);
+        return TenancyMapper.toDto(saved, tenant, unit, tenantLoginPassword);
     }
 
     @Override
@@ -126,7 +136,8 @@ public class TenancyServiceImpl implements TenancyService {
 
         syncOccupancy(previousUnitId, unit.getId(), wasActive, willBeActive);
 
-        return TenancyMapper.toDto(saved, tenant, unit);
+        String tenantLoginPassword = createOrUpdateTenantUser(tenant, unit);
+        return TenancyMapper.toDto(saved, tenant, unit, tenantLoginPassword);
     }
 
     @Override
@@ -340,6 +351,84 @@ public class TenancyServiceImpl implements TenancyService {
                             conflict.getStartDate(),
                             conflict.getEndDate() != null ? conflict.getEndDate() : "open-ended"));
                 });
+    }
+
+    private String createOrUpdateTenantUser(Tenant tenant, Unit unit) {
+        return userRepository.findByEmail(tenant.getEmail())
+                .map(existing -> updateExistingTenantUser(existing, tenant, unit))
+                .orElseGet(() -> createNewTenantUser(tenant, unit));
+    }
+
+    private String updateExistingTenantUser(User existing, Tenant tenant, Unit unit) {
+        if (existing.getTenantId() != null && !existing.getTenantId().equals(tenant.getId())) {
+            throw new BadRequestException(
+                    "A user account already exists with this email. Tenant login credentials cannot be generated.");
+        }
+
+        String password = generateTenantPassword();
+        existing.setPasswordHash(passwordEncoder.encode(password));
+        existing.setTenantId(tenant.getId());
+        existing.setUnitId(unit.getId());
+        existing.setOrganizationId(tenant.getOrganizationId());
+        userRepository.save(existing);
+        return password;
+    }
+
+    private String createNewTenantUser(Tenant tenant, Unit unit) {
+        String password = generateTenantPassword();
+        CreateUserRequest request = new CreateUserRequest();
+        request.setEmail(tenant.getEmail());
+        request.setPassword(password);
+        request.setFirstName(determineUserFirstName(tenant));
+        request.setLastName(determineUserLastName(tenant));
+        request.setTenantId(tenant.getId());
+        request.setUnitId(unit.getId());
+
+        userService.createUser(request);
+        return password;
+    }
+
+    private String determineUserFirstName(Tenant tenant) {
+        if (tenant.getTenantType() != null && tenant.getTenantType().name().equals("CORPORATE")) {
+            return tenant.getCompanyName() != null ? tenant.getCompanyName() : "Tenant";
+        }
+        return tenant.getFirstName() != null ? tenant.getFirstName() : "Tenant";
+    }
+
+    private String determineUserLastName(Tenant tenant) {
+        if (tenant.getTenantType() != null && tenant.getTenantType().name().equals("CORPORATE")) {
+            return "Account";
+        }
+        return tenant.getLastName() != null ? tenant.getLastName() : "Tenant";
+    }
+
+    private String generateTenantPassword() {
+        final String upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        final String lower = "abcdefghijklmnopqrstuvwxyz";
+        final String digits = "0123456789";
+        final String special = "!@#$%^&*()-_+=";
+        final String all = upper + lower + digits + special;
+
+        SecureRandom random = new SecureRandom();
+        StringBuilder password = new StringBuilder(12);
+
+        password.append(upper.charAt(random.nextInt(upper.length())));
+        password.append(lower.charAt(random.nextInt(lower.length())));
+        password.append(digits.charAt(random.nextInt(digits.length())));
+        password.append(special.charAt(random.nextInt(special.length())));
+
+        for (int i = 4; i < 12; i++) {
+            password.append(all.charAt(random.nextInt(all.length())));
+        }
+
+        List<Character> chars = password.chars()
+                .mapToObj(c -> (char) c)
+                .collect(Collectors.toList());
+        Collections.shuffle(chars, random);
+
+        return chars.stream()
+                .map(String::valueOf)
+                .collect(Collectors.joining());
     }
 
     /**

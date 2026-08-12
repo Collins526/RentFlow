@@ -8,6 +8,7 @@ import com.rentflow.entity.Unit;
 import com.rentflow.entity.enums.InvoiceStatus;
 import com.rentflow.exception.BadRequestException;
 import com.rentflow.exception.ResourceNotFoundException;
+import com.rentflow.exception.UnauthorizedException;
 import com.rentflow.mapper.RentInvoiceMapper;
 import com.rentflow.repository.RentInvoiceRepository;
 import com.rentflow.repository.TenantRepository;
@@ -111,6 +112,13 @@ public class RentBillingServiceImpl implements RentBillingService {
         UUID organizationId = SecurityUtils.getCurrentUserOrganizationId();
         RentInvoice invoice = getInvoiceOrThrow(id, organizationId);
 
+        if (SecurityUtils.hasRole("TENANT")) {
+            UUID currentTenantId = SecurityUtils.getCurrentUserTenantIdOrNull();
+            if (currentTenantId == null || !currentTenantId.equals(invoice.getTenantId())) {
+                throw new UnauthorizedException("Tenant can only access their own invoices");
+            }
+        }
+
         Tenant tenant = tenantRepository.findById(invoice.getTenantId()).orElse(null);
         Unit unit = unitRepository.findById(invoice.getUnitId()).orElse(null);
 
@@ -121,6 +129,18 @@ public class RentBillingServiceImpl implements RentBillingService {
     @Transactional(readOnly = true)
     public Page<RentInvoiceResponse> getInvoices(com.rentflow.entity.enums.InvoiceStatus status, UUID tenantId, UUID unitId, Pageable pageable) {
         UUID organizationId = SecurityUtils.getCurrentUserOrganizationId();
+
+        if (SecurityUtils.hasRole("TENANT")) {
+            UUID currentTenantId = SecurityUtils.getCurrentUserTenantIdOrNull();
+            if (currentTenantId == null) {
+                throw new UnauthorizedException("Tenant is not linked to a tenant record");
+            }
+            if (tenantId != null && !currentTenantId.equals(tenantId)) {
+                throw new UnauthorizedException("Tenant can only view their own invoice history");
+            }
+            tenantId = currentTenantId;
+            unitId = null;
+        }
 
         Page<com.rentflow.entity.RentInvoice> page;
         if (tenantId != null) {

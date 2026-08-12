@@ -49,4 +49,29 @@ export class OrganizationService {
       })
     );
   }
+
+  // Platform admin endpoints
+  getAllOrganizations(page = 0, size = 100): Observable<ApiResponse<{ content: Organization[] }>> {
+    return this.http.get<ApiResponse<{ content: Organization[] }>>(`${this.apiUrl}?page=${page}&size=${size}`);
+  }
+
+  getOrganizationById(id: string): Observable<ApiResponse<Organization>> {
+    return this.http.get<ApiResponse<Organization>>(`${this.apiUrl}/${id}`).pipe(
+      tap(response => {
+        if (response.success) {
+          this.currentOrganization.set(response.data);
+        }
+      })
+    );
+  }
+
+  updateOrganizationById(id: string, data: OrganizationUpdateRequest): Observable<ApiResponse<Organization>> {
+    return this.http.put<ApiResponse<Organization>>(`${this.apiUrl}/${id}`, data).pipe(
+      tap(response => {
+        if (response.success) {
+          this.currentOrganization.set(response.data);
+        }
+      })
+    );
+  }
 }

@@ -62,6 +62,17 @@ export const NAV_SECTIONS: NavSection[] = [
     ]
   },
   {
+    heading: 'Tenant',
+    items: [
+      {
+        label: 'Tenant portal',
+        icon: 'house',
+        route: '/tenant',
+        roles: [Role.Tenant]
+      }
+    ]
+  },
+  {
     heading: 'Administration',
     items: [
       {
