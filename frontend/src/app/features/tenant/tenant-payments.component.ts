@@ -185,7 +185,7 @@ export class TenantPaymentsComponent implements OnInit {
     }
   }
 
-  private pollForMpesaConfirmation(reference: string, expectedAmount: number): void {
+  private pollForMpesaConfirmation(reference: string, expectedAmount: number, checkoutRequestId?: string): void {
     this.clearMpesaPolling();
 
     const tenantId = this.auth.currentUser()?.tenantId;
@@ -198,9 +198,12 @@ export class TenantPaymentsComponent implements OnInit {
         next: res => {
           const payments = res.data?.content ?? [];
           const match = payments.find((payment: TenantPayment) => {
+            if (checkoutRequestId) {
+              return payment.externalReference === checkoutRequestId;
+            }
             const sameReference = (payment.reference ?? '').trim().toLowerCase() === reference.trim().toLowerCase();
             const sameAmount = Number(payment.amount) === expectedAmount;
-            return sameReference || (sameAmount && payment.status === 'PENDING');
+            return sameReference && sameAmount && payment.status === 'PENDING';
           });
 
           if (!match) {
@@ -290,7 +293,11 @@ export class TenantPaymentsComponent implements OnInit {
           this.isAwaitingMpesaConfirmation.set(true);
           this.submitState.set('success');
           this.submitMessage.set(message + ' Awaiting confirmation…');
-          this.pollForMpesaConfirmation(payload.reference ?? 'M-Pesa payment', numericAmount);
+          this.pollForMpesaConfirmation(
+            payload.reference ?? 'M-Pesa payment',
+            numericAmount,
+            checkoutResponse?.checkoutRequestId
+          );
         } else {
           this.submitState.set('success');
           this.submitMessage.set(`${this.paymentType() === 'rent' ? 'Rent' : 'Security deposit'} payment submitted successfully.`);

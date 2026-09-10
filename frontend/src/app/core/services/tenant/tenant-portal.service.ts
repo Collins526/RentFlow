@@ -20,6 +20,7 @@ export interface TenantPayment {
   id: string;
   tenantId: string;
   invoiceId?: string;
+  externalReference?: string;
   amount: number;
   method?: string;
   status: string;
