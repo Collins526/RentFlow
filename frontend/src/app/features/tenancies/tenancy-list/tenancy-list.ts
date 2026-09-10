@@ -8,6 +8,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatMenuModule } from '@angular/material/menu';
+import { ActivatedRoute } from '@angular/router';
 import { TenancyService } from '../../../core/services/tenancy/tenancy.service';
 import { ToastService, resolveApiMessage } from '../../../core/services/toast.service';
 import { formatEnumLabel } from '../../../core/services/unit/unit.service';
@@ -52,7 +53,7 @@ import {
     <app-page-header
       title="Tenancies"
       subtitle="Manage tenant-unit assignments and occupancy.">
-      <button actions mat-flat-button color="primary" (click)="openTenancyForm()">
+      <button *ngIf="!organizationId" actions mat-flat-button color="primary" (click)="openTenancyForm()">
         <mat-icon>add</mat-icon>
         New Tenancy
       </button>
@@ -132,6 +133,7 @@ export class TenancyList implements OnInit {
   private dialog = inject(MatDialog);
   private toast = inject(ToastService);
   private currency = inject(CurrencyPipe);
+  private route = inject(ActivatedRoute);
 
   readonly statuses = TENANCY_STATUSES;
   readonly formatLabel = formatEnumLabel;
@@ -143,6 +145,7 @@ export class TenancyList implements OnInit {
   totalElements = signal(0);
   pageSize = signal(10);
   pageIndex = signal(0);
+  organizationId = this.route.snapshot.queryParamMap.get('organizationId') ?? undefined;
 
   statusFilter: TenancyStatus | null = null;
 
@@ -187,7 +190,10 @@ export class TenancyList implements OnInit {
     this.loadError.set(null);
 
     this.tenancyService
-      .getTenancies(this.pageIndex(), this.pageSize(), { status: this.statusFilter })
+      .getTenancies(this.pageIndex(), this.pageSize(), {
+        status: this.statusFilter,
+        organizationId: this.organizationId
+      })
       .subscribe({
         next: res => {
           this.tenancies.set(res.data?.content ?? []);

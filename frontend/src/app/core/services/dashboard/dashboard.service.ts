@@ -4,6 +4,8 @@ import { Observable } from 'rxjs';
 import { ApiResponse } from '../auth.service';
 
 export interface DashboardSummary {
+  totalOrganizations: number;
+  organizations: DashboardOrganizationSummary[];
   totalProperties: number;
   totalBlocks: number;
   totalUnits: number;
@@ -17,6 +19,16 @@ export interface DashboardSummary {
   upcomingTenancies: number;
   contractedMonthlyRent: number;
   potentialMonthlyRent: number;
+}
+
+export interface DashboardOrganizationSummary {
+  id: string;
+  name: string;
+  email?: string | null;
+  properties: number;
+  units: number;
+  tenants: number;
+  activeTenancies: number;
 }
 
 @Injectable({ providedIn: 'root' })

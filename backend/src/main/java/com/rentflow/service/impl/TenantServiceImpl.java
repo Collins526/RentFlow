@@ -89,7 +89,15 @@ public class TenantServiceImpl implements TenantService {
     @Override
     @Transactional(readOnly = true)
     public Page<TenantResponse> getAllTenants(Pageable pageable) {
-        UUID orgId = SecurityUtils.getCurrentUserOrganizationId();
+        return getAllTenants(pageable, null);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<TenantResponse> getAllTenants(Pageable pageable, UUID requestedOrganizationId) {
+        UUID orgId = SecurityUtils.isPlatformAdmin() && requestedOrganizationId != null
+                ? requestedOrganizationId
+                : SecurityUtils.getCurrentUserOrganizationId();
         return tenantRepository.findByOrganizationId(orgId, pageable)
                 .map(this::mapToResponse);
     }

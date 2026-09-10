@@ -21,6 +21,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.HttpStatusCodeException;
 
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
@@ -65,7 +66,7 @@ public class MpesaServiceImpl implements MpesaService {
             throw new BadRequestException("Tenant ID is required for M-Pesa payments");
         }
 
-        validateConfiguration();
+        String normalizedPhoneNumber = normalizePhoneNumber(phoneNumber);
 
         UUID organizationId = SecurityUtils.getCurrentUserOrganizationId();
 
@@ -83,36 +84,38 @@ public class MpesaServiceImpl implements MpesaService {
                 .method(PaymentMethod.MPESA)
                 .status(PaymentStatus.PENDING)
                 .reference(reference != null ? reference : accountReference)
-                .phoneNumber(phoneNumber)
+                .phoneNumber(normalizedPhoneNumber)
                 .paymentDate(LocalDate.now())
                 .build();
 
         Payment savedPayment = paymentRepository.save(payment);
 
-        String accessToken = fetchAccessToken();
-        String timestamp = TIMESTAMP_FORMATTER.format(ZonedDateTime.now());
-        String password = encodePassword(mpesaProperties.getShortCode(), mpesaProperties.getPasskey(), timestamp);
-
-        Map<String, Object> payload = new LinkedHashMap<>();
-        payload.put("BusinessShortCode", mpesaProperties.getShortCode());
-        payload.put("Password", password);
-        payload.put("Timestamp", timestamp);
-        payload.put("TransactionType", "CustomerPayBillOnline");
-        payload.put("Amount", amount);
-        payload.put("PartyA", phoneNumber);
-        payload.put("PartyB", mpesaProperties.getShortCode());
-        payload.put("PhoneNumber", phoneNumber);
-        payload.put("CallBackURL", mpesaProperties.getCallbackUrl());
-        payload.put("AccountReference", accountReference != null ? accountReference : mpesaProperties.getAccountReference());
-        payload.put("TransactionDesc", transactionDesc != null ? transactionDesc : mpesaProperties.getTransactionDesc());
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(accessToken);
-        headers.setContentType(MediaType.APPLICATION_JSON);
-
-        String requestUrl = trimTrailingSlash(mpesaProperties.getBaseUrl()) + "/mpesa/stkpush/v1/processrequest";
-
         try {
+            validateConfiguration();
+
+            String accessToken = fetchAccessToken();
+            String timestamp = TIMESTAMP_FORMATTER.format(ZonedDateTime.now());
+            String password = encodePassword(mpesaProperties.getShortCode(), mpesaProperties.getPasskey(), timestamp);
+
+            Map<String, Object> payload = new LinkedHashMap<>();
+            payload.put("BusinessShortCode", mpesaProperties.getShortCode());
+            payload.put("Password", password);
+            payload.put("Timestamp", timestamp);
+            payload.put("TransactionType", "CustomerPayBillOnline");
+            payload.put("Amount", amount);
+            payload.put("PartyA", normalizedPhoneNumber);
+            payload.put("PartyB", mpesaProperties.getShortCode());
+            payload.put("PhoneNumber", normalizedPhoneNumber);
+            payload.put("CallBackURL", mpesaProperties.getCallbackUrl());
+            payload.put("AccountReference", accountReference != null ? accountReference : mpesaProperties.getAccountReference());
+            payload.put("TransactionDesc", transactionDesc != null ? transactionDesc : mpesaProperties.getTransactionDesc());
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setBearerAuth(accessToken);
+            headers.setContentType(MediaType.APPLICATION_JSON);
+
+            String requestUrl = trimTrailingSlash(mpesaProperties.getBaseUrl()) + "/mpesa/stkpush/v1/processrequest";
+
             ResponseEntity<Map<String, Object>> response = restTemplate.exchange(requestUrl, HttpMethod.POST,
                     new HttpEntity<>(payload, headers), new ParameterizedTypeReference<Map<String, Object>>() {});
             Map<String, Object> body = response.getBody();
@@ -143,12 +146,18 @@ public class MpesaServiceImpl implements MpesaService {
                     .responseDescription(responseDescription)
                     .success(true)
                     .build();
-        } catch (RuntimeException ex) {
+        } catch (BadRequestException ex) {
             if (savedPayment.getId() != null) {
                 savedPayment.setStatus(PaymentStatus.FAILED);
                 paymentRepository.save(savedPayment);
             }
             throw ex;
+        } catch (Exception ex) {
+            if (savedPayment.getId() != null) {
+                savedPayment.setStatus(PaymentStatus.FAILED);
+                paymentRepository.save(savedPayment);
+            }
+            throw new BadRequestException("M-Pesa payment could not be initiated: " + ex.getMessage());
         }
     }
 
@@ -181,17 +190,23 @@ public class MpesaServiceImpl implements MpesaService {
     private String fetchAccessToken() {
         String tokenUrl = trimTrailingSlash(mpesaProperties.getBaseUrl()) + "/oauth/v1/generate?grant_type=client_credentials";
         HttpHeaders headers = new HttpHeaders();
-        headers.setBasicAuth(mpesaProperties.getConsumerKey(), mpesaProperties.getConsumerSecret());
+        headers.setBasicAuth(mpesaProperties.getConsumerKey(), mpesaProperties.getConsumerSecret(), StandardCharsets.UTF_8);
 
-        ResponseEntity<Map<String, Object>> response = restTemplate.exchange(tokenUrl, HttpMethod.GET,
-                new HttpEntity<>(headers), new ParameterizedTypeReference<Map<String, Object>>() {});
-        Map<String, Object> body = response.getBody();
+        try {
+            ResponseEntity<Map<String, Object>> response = restTemplate.exchange(tokenUrl, HttpMethod.GET,
+                    new HttpEntity<>(headers), new ParameterizedTypeReference<Map<String, Object>>() {});
+            Map<String, Object> body = response.getBody();
 
-        if (body == null || !body.containsKey("access_token")) {
-            throw new BadRequestException("Failed to acquire M-Pesa access token");
+            if (body == null || !body.containsKey("access_token")) {
+                throw new BadRequestException("Failed to acquire M-Pesa access token");
+            }
+
+            return Objects.toString(body.get("access_token"), "");
+        } catch (HttpStatusCodeException ex) {
+            String responseBody = ex.getResponseBodyAsString();
+            throw new BadRequestException("M-Pesa OAuth failed (HTTP " + ex.getStatusCode().value()
+                    + "): " + (responseBody.isBlank() ? "empty response from Daraja" : responseBody));
         }
-
-        return Objects.toString(body.get("access_token"), "");
     }
 
     private int parseInteger(Object value) {
@@ -252,27 +267,47 @@ public class MpesaServiceImpl implements MpesaService {
     }
 
     private void validateConfiguration() {
-        if (mpesaProperties.getBaseUrl() == null || mpesaProperties.getBaseUrl().isBlank()) {
+        if (isMissingOrPlaceholder(mpesaProperties.getBaseUrl())) {
             throw new IllegalStateException("M-Pesa base URL is not configured");
         }
-        if (mpesaProperties.getConsumerKey() == null || mpesaProperties.getConsumerKey().isBlank()) {
+        if (isMissingOrPlaceholder(mpesaProperties.getConsumerKey())) {
             throw new IllegalStateException("M-Pesa consumer key is not configured");
         }
-        if (mpesaProperties.getConsumerSecret() == null || mpesaProperties.getConsumerSecret().isBlank()) {
+        if (isMissingOrPlaceholder(mpesaProperties.getConsumerSecret())) {
             throw new IllegalStateException("M-Pesa consumer secret is not configured");
         }
-        if (mpesaProperties.getShortCode() == null || mpesaProperties.getShortCode().isBlank()) {
+        if (isMissingOrPlaceholder(mpesaProperties.getShortCode())) {
             throw new IllegalStateException("M-Pesa short code is not configured");
         }
-        if (mpesaProperties.getPasskey() == null || mpesaProperties.getPasskey().isBlank()) {
+        if (isMissingOrPlaceholder(mpesaProperties.getPasskey())) {
             throw new IllegalStateException("M-Pesa passkey is not configured");
         }
-        if (mpesaProperties.getCallbackUrl() == null || mpesaProperties.getCallbackUrl().isBlank()) {
+        if (isMissingOrPlaceholder(mpesaProperties.getCallbackUrl())) {
             throw new IllegalStateException("M-Pesa callback URL is not configured");
         }
     }
 
+    private boolean isMissingOrPlaceholder(String value) {
+        return value == null || value.isBlank() || (value.startsWith("<") && value.endsWith(">"));
+    }
+
     private String trimTrailingSlash(String value) {
         return value != null && value.endsWith("/") ? value.substring(0, value.length() - 1) : value;
+    }
+
+    private String normalizePhoneNumber(String phoneNumber) {
+        String normalized = phoneNumber.trim().replaceAll("[\\s()-]", "");
+
+        if (normalized.startsWith("+254")) {
+            normalized = normalized.substring(1);
+        } else if (normalized.startsWith("0")) {
+            normalized = "254" + normalized.substring(1);
+        }
+
+        if (!normalized.matches("254[17]\\d{8}")) {
+            throw new BadRequestException("M-Pesa phone number must be a valid Kenyan number, e.g. 0712345678");
+        }
+
+        return normalized;
     }
 }

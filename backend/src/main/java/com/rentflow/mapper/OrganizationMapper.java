@@ -17,6 +17,7 @@ public class OrganizationMapper {
                 .phone(organization.getPhone())
                 .address(organization.getAddress())
                 .logoUrl(organization.getLogoUrl())
+                .status(organization.getStatus())
                 .build();
     }
 }

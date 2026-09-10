@@ -39,8 +39,11 @@ public final class SecurityUtils {
     }
 
     public static boolean isPlatformAdmin() {
-        return getCurrentUser().getAuthorities().stream()
-                .anyMatch(authority -> "ROLE_PLATFORM_ADMIN".equals(authority.getAuthority()));
+        UserDetailsImpl currentUser = getCurrentUser();
+        return currentUser.getUser().getRoles().stream()
+            .anyMatch(role -> "PLATFORM_ADMIN".equals(role.getName()))
+            || currentUser.getAuthorities().stream()
+            .anyMatch(authority -> "ROLE_PLATFORM_ADMIN".equals(authority.getAuthority()));
     }
 
     public static boolean hasRole(String roleName) {

@@ -61,6 +61,7 @@ export interface EndTenancyRequest {
 }
 
 export interface TenancyFilters {
+  organizationId?: string;
   status?: TenancyStatus | null;
   tenantId?: string | null;
   unitId?: string | null;

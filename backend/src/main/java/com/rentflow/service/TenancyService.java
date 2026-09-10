@@ -22,6 +22,8 @@ public interface TenancyService {
      * {@code null} for all three returns the whole organization.
      */
     Page<TenancyResponse> getTenancies(TenancyStatus status, UUID tenantId, UUID unitId, Pageable pageable);
+    Page<TenancyResponse> getTenancies(TenancyStatus status, UUID tenantId, UUID unitId,
+                                       UUID organizationId, Pageable pageable);
 
     /** Closes a tenancy on a given date and releases its unit. */
     TenancyResponse endTenancy(UUID id, EndTenancyRequest request);

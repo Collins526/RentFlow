@@ -1,0 +1,2 @@
+ALTER TABLE properties
+    ADD COLUMN IF NOT EXISTS number_of_floors INTEGER NOT NULL DEFAULT 0;

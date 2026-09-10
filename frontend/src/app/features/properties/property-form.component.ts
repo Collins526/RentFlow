@@ -44,6 +44,22 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
             </mat-select>
             <mat-error *ngIf="propertyForm.get('type')?.hasError('required')">Required</mat-error>
           </mat-form-field>
+
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Number of Units</mat-label>
+            <input matInput type="number" min="0" formControlName="numberOfUnits" required>
+            <mat-icon matSuffix>meeting_room</mat-icon>
+            <mat-error *ngIf="propertyForm.get('numberOfUnits')?.hasError('required')">Required</mat-error>
+            <mat-error *ngIf="propertyForm.get('numberOfUnits')?.hasError('min')">Cannot be negative</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Number of Floors</mat-label>
+            <input matInput type="number" min="0" formControlName="numberOfFloors" required>
+            <mat-icon matSuffix>layers</mat-icon>
+            <mat-error *ngIf="propertyForm.get('numberOfFloors')?.hasError('required')">Required</mat-error>
+            <mat-error *ngIf="propertyForm.get('numberOfFloors')?.hasError('min')">Cannot be negative</mat-error>
+          </mat-form-field>
         </div>
 
         <mat-form-field appearance="outline" class="w-full">
@@ -119,7 +135,9 @@ export class PropertyFormComponent implements OnInit {
     zipCode: ['', Validators.maxLength(20)],
     country: ['', Validators.maxLength(100)],
     description: [''],
-    status: ['ACTIVE']
+    status: ['ACTIVE'],
+    numberOfUnits: [0, [Validators.required, Validators.min(0)]],
+    numberOfFloors: [0, [Validators.required, Validators.min(0)]]
   });
 
   ngOnInit() {

@@ -155,7 +155,16 @@ public class TenancyServiceImpl implements TenancyService {
     @Override
     @Transactional(readOnly = true)
     public Page<TenancyResponse> getTenancies(TenancyStatus status, UUID tenantId, UUID unitId, Pageable pageable) {
-        UUID organizationId = SecurityUtils.getCurrentUserOrganizationId();
+        return getTenancies(status, tenantId, unitId, null, pageable);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<TenancyResponse> getTenancies(TenancyStatus status, UUID tenantId, UUID unitId,
+                                              UUID requestedOrganizationId, Pageable pageable) {
+        UUID organizationId = SecurityUtils.isPlatformAdmin() && requestedOrganizationId != null
+                ? requestedOrganizationId
+                : SecurityUtils.getCurrentUserOrganizationId();
         return toDtoPage(findFiltered(organizationId, status, tenantId, unitId, pageable));
     }
 

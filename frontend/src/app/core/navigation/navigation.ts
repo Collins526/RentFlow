@@ -11,6 +11,8 @@ export interface NavItem {
    * the nav never offers a link that would come back 403.
    */
   roles: RoleName[];
+  /** Platform admins drill into portfolio data from an organization instead. */
+  hideFromPlatformAdmin?: boolean;
   /**
    * Match the route as a prefix rather than exactly, so `/properties/:id` keeps
    * the Properties item highlighted.
@@ -38,6 +40,7 @@ export const NAV_SECTIONS: NavSection[] = [
         icon: 'apartment',
         route: '/properties',
         roles: PORTFOLIO_READ_ROLES,
+        hideFromPlatformAdmin: true,
         matchPrefix: true
       }
     ]
@@ -50,6 +53,7 @@ export const NAV_SECTIONS: NavSection[] = [
         icon: 'people',
         route: '/tenants',
         roles: PORTFOLIO_READ_ROLES,
+        hideFromPlatformAdmin: true,
         matchPrefix: true
       },
       {
@@ -57,6 +61,7 @@ export const NAV_SECTIONS: NavSection[] = [
         icon: 'assignment_ind',
         route: '/tenancies',
         roles: PORTFOLIO_READ_ROLES,
+        hideFromPlatformAdmin: true,
         matchPrefix: true
       }
     ]
@@ -76,7 +81,7 @@ export const NAV_SECTIONS: NavSection[] = [
     heading: 'Administration',
     items: [
       {
-        label: 'Organization',
+        label: 'Organizations',
         icon: 'business',
         route: '/organization',
         roles: [Role.OrganizationOwner, Role.PlatformAdmin]

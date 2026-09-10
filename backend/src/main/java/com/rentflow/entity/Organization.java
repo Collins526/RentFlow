@@ -33,4 +33,8 @@ public class Organization extends BaseEntity {
 
     @Column(name = "logo_url", length = 500)
     private String logoUrl;
+
+    @Column(nullable = false, length = 30)
+    @Builder.Default
+    private String status = "ACTIVE";
 }

@@ -1,6 +1,6 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
@@ -39,7 +39,7 @@ interface MetricTile {
   template: `
     <app-page-header
       [title]="greeting()"
-      subtitle="Here's how your portfolio is doing today.">
+      [subtitle]="subtitle()">
       <button actions mat-stroked-button (click)="load()" [disabled]="isLoading()">
         <mat-icon>refresh</mat-icon>
         Refresh
@@ -62,6 +62,18 @@ interface MetricTile {
     </div>
 
     <ng-container *ngIf="!isLoading() && summary() as data">
+      <div *ngIf="isPlatformAdmin()" class="mb-6 rounded-2xl border border-indigo-100 bg-indigo-50 px-5 py-4">
+        <div class="flex items-center gap-3">
+          <span class="h-10 w-10 rounded-xl bg-indigo-600 text-white grid place-items-center">
+            <mat-icon>insights</mat-icon>
+          </span>
+          <div>
+            <h2 class="font-semibold text-indigo-950">System overview</h2>
+            <p class="text-sm text-indigo-700">Live analysis across all active organizations and apartments.</p>
+          </div>
+        </div>
+      </div>
+
       <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4 mb-6">
         <a *ngFor="let tile of tiles()"
            [routerLink]="tile.route"
@@ -81,9 +93,135 @@ interface MetricTile {
         </a>
       </div>
 
+      <section *ngIf="!isPlatformAdmin()" class="grid gap-4 lg:grid-cols-12 mb-6">
+        <article class="lg:col-span-4 bg-slate-900 text-white rounded-2xl p-5 overflow-hidden relative">
+          <div class="relative z-10">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm text-slate-300">Portfolio occupancy</p>
+                <p class="mt-1 text-xs text-slate-400">Live apartment performance</p>
+              </div>
+              <mat-icon class="text-sky-300">donut_large</mat-icon>
+            </div>
+            <div class="flex items-center gap-5 mt-5">
+              <div class="h-28 w-28 rounded-full grid place-items-center shrink-0"
+                   [style.background]="occupancyRing()">
+                <div class="h-20 w-20 rounded-full bg-slate-900 grid place-items-center">
+                  <span class="text-2xl font-bold">{{ data.occupancyRate }}%</span>
+                </div>
+              </div>
+              <div class="space-y-2 text-sm">
+                <div class="flex items-center gap-2"><span class="h-2 w-2 rounded-full bg-emerald-400"></span>Occupied <strong class="ml-auto">{{ data.occupiedUnits }}</strong></div>
+                <div class="flex items-center gap-2"><span class="h-2 w-2 rounded-full bg-sky-400"></span>Reserved <strong class="ml-auto">{{ data.reservedUnits }}</strong></div>
+                <div class="flex items-center gap-2"><span class="h-2 w-2 rounded-full bg-slate-500"></span>Vacant <strong class="ml-auto">{{ data.vacantUnits }}</strong></div>
+              </div>
+            </div>
+          </div>
+          <div class="absolute -right-10 -bottom-16 h-40 w-40 rounded-full border border-white/10"></div>
+        </article>
+
+        <article class="lg:col-span-4 bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+          <div class="flex items-start justify-between">
+            <div>
+              <p class="text-sm text-gray-500">Revenue performance</p>
+              <p class="mt-1 text-xs text-gray-400">Monthly rent collection potential</p>
+            </div>
+            <span class="h-9 w-9 rounded-lg bg-emerald-50 text-emerald-600 grid place-items-center">
+              <mat-icon class="!text-xl">trending_up</mat-icon>
+            </span>
+          </div>
+          <p class="mt-5 text-2xl font-bold text-gray-900">
+            {{ data.contractedMonthlyRent | currency:'KES ':'symbol':'1.0-0' }}
+          </p>
+          <div class="mt-4 h-2 rounded-full bg-gray-100 overflow-hidden">
+            <div class="h-full rounded-full bg-emerald-500" [style.width.%]="revenueCaptureRate()"></div>
+          </div>
+          <div class="flex justify-between mt-2 text-xs text-gray-500">
+            <span>{{ revenueCaptureRate() }}% captured</span>
+            <span>{{ data.potentialMonthlyRent | currency:'KES ':'symbol':'1.0-0' }} potential</span>
+          </div>
+        </article>
+
+        <article class="lg:col-span-4 bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+          <div class="flex items-start justify-between">
+            <div>
+              <p class="text-sm text-gray-500">Portfolio health</p>
+              <p class="mt-1 text-xs text-gray-400">Where attention is needed</p>
+            </div>
+            <mat-icon class="text-amber-500">monitor_heart</mat-icon>
+          </div>
+          <div class="space-y-4 mt-5">
+            <div>
+              <div class="flex justify-between text-xs mb-1"><span class="text-gray-600">Occupied apartments</span><strong>{{ data.occupiedUnits }}/{{ data.totalUnits }}</strong></div>
+              <div class="h-1.5 rounded-full bg-gray-100"><div class="h-full rounded-full bg-indigo-500" [style.width.%]="data.occupancyRate"></div></div>
+            </div>
+            <div>
+              <div class="flex justify-between text-xs mb-1"><span class="text-gray-600">Upcoming move-ins</span><strong>{{ data.upcomingTenancies }}</strong></div>
+              <div class="h-1.5 rounded-full bg-gray-100"><div class="h-full rounded-full bg-sky-500" [style.width.%]="upcomingRate()"></div></div>
+            </div>
+            <div>
+              <div class="flex justify-between text-xs mb-1"><span class="text-gray-600">Maintenance queue</span><strong>{{ data.unitsUnderMaintenance }}</strong></div>
+              <div class="h-1.5 rounded-full bg-gray-100"><div class="h-full rounded-full bg-amber-500" [style.width.%]="maintenanceRate()"></div></div>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <section *ngIf="!isPlatformAdmin()" class="flex flex-wrap items-center gap-3 mb-6">
+        <a mat-flat-button color="primary" routerLink="/properties"><mat-icon>add_home</mat-icon> Add property</a>
+        <a mat-stroked-button routerLink="/tenancies"><mat-icon>assignment_add</mat-icon> Create tenancy</a>
+        <a mat-stroked-button routerLink="/tenants"><mat-icon>person_add</mat-icon> Add tenant</a>
+      </section>
+
+      <section *ngIf="isPlatformAdmin()" class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-6">
+        <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+          <div>
+            <h2 class="font-semibold text-gray-900">Organizations across the system</h2>
+            <p class="text-sm text-gray-500 mt-1">Manage every registered organization from one place.</p>
+          </div>
+          <a mat-stroked-button routerLink="/organization">View all</a>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead class="bg-gray-50 text-left text-xs uppercase tracking-wide text-gray-500">
+              <tr>
+                <th class="px-5 py-3 font-medium">Organization</th>
+                <th class="px-5 py-3 font-medium">Properties</th>
+                <th class="px-5 py-3 font-medium">Apartments</th>
+                <th class="px-5 py-3 font-medium">Tenants</th>
+                <th class="px-5 py-3 font-medium">Active tenancies</th>
+                <th class="px-5 py-3 font-medium text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+              <tr *ngFor="let organization of data.organizations"
+                  class="hover:bg-indigo-50 cursor-pointer"
+                  (click)="openOrganizationProperties(organization.id)">
+                <td class="px-5 py-3">
+                  <p class="font-medium text-gray-900">{{ organization.name }}</p>
+                  <p class="text-xs text-gray-500">{{ organization.email || 'No contact email' }}</p>
+                </td>
+                <td class="px-5 py-3 text-gray-600">{{ organization.properties }}</td>
+                <td class="px-5 py-3 text-gray-600">{{ organization.units }}</td>
+                <td class="px-5 py-3 text-gray-600">{{ organization.tenants }}</td>
+                <td class="px-5 py-3 text-gray-600">{{ organization.activeTenancies }}</td>
+                <td class="px-5 py-3 text-right">
+                  <button mat-icon-button matTooltip="View properties" aria-label="View organization properties">
+                    <mat-icon>arrow_forward</mat-icon>
+                  </button>
+                </td>
+              </tr>
+              <tr *ngIf="data.organizations.length === 0">
+                <td colspan="6" class="px-5 py-8 text-center text-gray-500">No organizations registered yet.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
       <div class="grid gap-4 lg:grid-cols-3">
         <section class="lg:col-span-2 bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-          <h2 class="font-semibold text-gray-900">Occupancy</h2>
+          <h2 class="font-semibold text-gray-900">{{ isPlatformAdmin() ? 'Occupancy' : 'Portfolio occupancy analysis' }}</h2>
           <p class="text-sm text-gray-500 mb-4">
             {{ data.occupiedUnits }} of {{ data.totalUnits }} units are currently let.
           </p>
@@ -145,10 +283,13 @@ interface MetricTile {
 export class DashboardComponent implements OnInit {
   private dashboardService = inject(DashboardService);
   private auth = inject(AuthService);
+  private router = inject(Router);
 
   summary = signal<DashboardSummary | null>(null);
   isLoading = signal(true);
   error = signal<string | null>(null);
+
+  isPlatformAdmin = computed(() => this.auth.hasRole('PLATFORM_ADMIN'));
 
   /** Bound into the error state, which takes a callback rather than an output. */
   reload = () => this.load();
@@ -158,6 +299,10 @@ export class DashboardComponent implements OnInit {
     return name ? `Welcome back, ${name}` : 'Dashboard';
   });
 
+  subtitle = computed(() => this.isPlatformAdmin()
+    ? 'System-wide performance and portfolio analysis.'
+    : "Here's how your portfolio is doing today.");
+
   tiles = computed<MetricTile[]>(() => {
     const data = this.summary();
     if (!data) {
@@ -165,7 +310,15 @@ export class DashboardComponent implements OnInit {
     }
 
     return [
-      {
+      ...(this.isPlatformAdmin() ? [{
+        label: 'Organizations',
+        value: `${data.totalOrganizations}`,
+        hint: 'Active organizations',
+        icon: 'business',
+        tone: 'bg-indigo-50 text-indigo-600',
+        route: '/organization'
+      }] : []),
+      ...(!this.isPlatformAdmin() ? [{
         label: 'Properties',
         value: `${data.totalProperties}`,
         hint: data.totalBlocks > 0 ? `${data.totalBlocks} blocks` : undefined,
@@ -194,7 +347,7 @@ export class DashboardComponent implements OnInit {
         icon: 'people',
         tone: 'bg-violet-50 text-violet-600',
         route: '/tenants'
-      }
+      }] : [])
     ];
   });
 
@@ -221,8 +374,42 @@ export class DashboardComponent implements OnInit {
     return Math.max(0, data.potentialMonthlyRent - data.contractedMonthlyRent);
   });
 
+  occupancyRing = computed(() => {
+    const rate = this.summary()?.occupancyRate ?? 0;
+    return `conic-gradient(#34d399 0 ${rate}%, #38bdf8 ${rate}% ${Math.min(100, rate + 12)}%, #475569 ${Math.min(100, rate + 12)}% 100%)`;
+  });
+
+  revenueCaptureRate = computed(() => {
+    const data = this.summary();
+    if (!data || data.potentialMonthlyRent <= 0) {
+      return 0;
+    }
+    return Math.min(100, Math.round((data.contractedMonthlyRent / data.potentialMonthlyRent) * 100));
+  });
+
+  upcomingRate = computed(() => {
+    const data = this.summary();
+    if (!data || data.totalUnits <= 0) {
+      return 0;
+    }
+    return Math.min(100, Math.round((data.upcomingTenancies / data.totalUnits) * 100));
+  });
+
+  maintenanceRate = computed(() => {
+    const data = this.summary();
+    if (!data || data.totalUnits <= 0) {
+      return 0;
+    }
+    return Math.min(100, Math.round((data.unitsUnderMaintenance / data.totalUnits) * 100));
+  });
+
   ngOnInit(): void {
     this.load();
+  }
+
+  openOrganizationProperties(organizationId: string): void {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.router.navigate(['/properties'], { queryParams: { organizationId } });
   }
 
   load(): void {

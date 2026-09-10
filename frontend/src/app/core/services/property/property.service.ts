@@ -15,6 +15,9 @@ export interface Property {
   country: string;
   description: string;
   status: string;
+  units: number;
+  numberOfUnits: number;
+  numberOfFloors: number;
 }
 
 export interface PropertyRequest {
@@ -27,6 +30,8 @@ export interface PropertyRequest {
   country?: string;
   description?: string;
   status?: string;
+  numberOfUnits?: number;
+  numberOfFloors?: number;
 }
 
 export interface Page<T> {
@@ -45,10 +50,13 @@ export class PropertyService {
 
   constructor(private http: HttpClient) {}
 
-  getAllProperties(page: number = 0, size: number = 10): Observable<ApiResponse<Page<Property>>> {
-    const params = new HttpParams()
+  getAllProperties(page: number = 0, size: number = 10, organizationId?: string): Observable<ApiResponse<Page<Property>>> {
+    let params = new HttpParams()
       .set('page', page.toString())
       .set('size', size.toString());
+    if (organizationId) {
+      params = params.set('organizationId', organizationId);
+    }
     return this.http.get<ApiResponse<Page<Property>>>(this.apiUrl, { params });
   }
 

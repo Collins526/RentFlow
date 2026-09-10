@@ -7,7 +7,9 @@ import com.rentflow.exception.ResourceNotFoundException;
 import com.rentflow.exception.UnauthorizedException;
 import com.rentflow.mapper.PropertyMapper;
 import com.rentflow.repository.PropertyRepository;
+import com.rentflow.repository.UnitRepository;
 import com.rentflow.security.UserDetailsImpl;
+import com.rentflow.security.SecurityUtils;
 import com.rentflow.service.PropertyService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -24,6 +26,7 @@ import java.util.UUID;
 public class PropertyServiceImpl implements PropertyService {
 
     private final PropertyRepository propertyRepository;
+    private final UnitRepository unitRepository;
 
     @Override
     @Transactional
@@ -31,22 +34,30 @@ public class PropertyServiceImpl implements PropertyService {
         UUID organizationId = getCurrentUserOrganizationId();
         Property property = PropertyMapper.toEntity(request, organizationId);
         Property savedProperty = propertyRepository.save(property);
-        return PropertyMapper.toDto(savedProperty);
+        return toResponse(savedProperty);
     }
 
     @Override
     @Transactional(readOnly = true)
     public Page<PropertyResponse> getAllProperties(Pageable pageable) {
-        UUID organizationId = getCurrentUserOrganizationId();
-        return propertyRepository.findByOrganizationId(organizationId, pageable)
-                .map(PropertyMapper::toDto);
+        return getAllProperties(pageable, null);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<PropertyResponse> getAllProperties(Pageable pageable, UUID requestedOrganizationId) {
+        UUID organizationId = SecurityUtils.isPlatformAdmin() && requestedOrganizationId != null
+                ? requestedOrganizationId
+                : getCurrentUserOrganizationId();
+        return propertyRepository.findByOrganizationIdAndDeletedAtIsNull(organizationId, pageable)
+            .map(this::toResponse);
     }
 
     @Override
     @Transactional(readOnly = true)
     public PropertyResponse getPropertyById(UUID id) {
         Property property = getPropertyEntity(id);
-        return PropertyMapper.toDto(property);
+        return toResponse(property);
     }
 
     @Override
@@ -65,9 +76,15 @@ public class PropertyServiceImpl implements PropertyService {
         if (request.getStatus() != null) {
             property.setStatus(request.getStatus());
         }
+        if (request.getNumberOfUnits() != null) {
+            property.setNumberOfUnits(request.getNumberOfUnits());
+        }
+        if (request.getNumberOfFloors() != null) {
+            property.setNumberOfFloors(request.getNumberOfFloors());
+        }
 
         Property updatedProperty = propertyRepository.save(property);
-        return PropertyMapper.toDto(updatedProperty);
+        return toResponse(updatedProperty);
     }
 
     @Override
@@ -81,6 +98,12 @@ public class PropertyServiceImpl implements PropertyService {
         UUID organizationId = getCurrentUserOrganizationId();
         return propertyRepository.findByIdAndOrganizationId(id, organizationId)
                 .orElseThrow(() -> new ResourceNotFoundException("Property not found with id: " + id));
+    }
+
+    private PropertyResponse toResponse(Property property) {
+        PropertyResponse response = PropertyMapper.toDto(property);
+        response.setUnits(unitRepository.countByPropertyIdAndDeletedAtIsNull(property.getId()));
+        return response;
     }
 
     private UUID getCurrentUserOrganizationId() {

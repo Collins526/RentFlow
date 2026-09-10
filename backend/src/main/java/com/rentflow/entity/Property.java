@@ -51,4 +51,12 @@ public class Property extends BaseEntity {
     @Column(nullable = false, length = 50)
     @Builder.Default
     private String status = "ACTIVE";
+
+    @Column(name = "number_of_units", nullable = false)
+    @Builder.Default
+    private Integer numberOfUnits = 0;
+
+    @Column(name = "number_of_floors", nullable = false)
+    @Builder.Default
+    private Integer numberOfFloors = 0;
 }

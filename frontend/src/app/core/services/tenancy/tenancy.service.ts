@@ -39,6 +39,9 @@ export class TenancyService {
     if (filters.unitId) {
       params = params.set('unitId', filters.unitId);
     }
+    if (filters.organizationId) {
+      params = params.set('organizationId', filters.organizationId);
+    }
 
     return this.http.get<ApiResponse<Page<Tenancy>>>(this.apiUrl, { params });
   }

@@ -4,14 +4,15 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.util.List;
 
-/**
- * Portfolio-wide counters for the landing dashboard, scoped to one organization.
- */
+/** Counters and analysis for either one organization or the whole platform. */
 @Data
 @Builder
 public class DashboardSummaryResponse {
 
+    private long totalOrganizations;
+    private List<DashboardOrganizationSummary> organizations;
     private long totalProperties;
     private long totalBlocks;
 

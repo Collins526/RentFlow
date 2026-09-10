@@ -23,4 +23,7 @@ public class PropertyResponse {
     private String country;
     private String description;
     private String status;
+    private long units;
+    private Integer numberOfUnits;
+    private Integer numberOfFloors;
 }

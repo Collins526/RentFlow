@@ -6,6 +6,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatRippleModule } from '@angular/material/core';
 import { AuthService } from '../core/services/auth.service';
 import { NAV_SECTIONS, NavSection } from '../core/navigation/navigation';
+import { Role } from '../core/auth/roles';
 
 /**
  * Primary navigation.
@@ -84,7 +85,9 @@ export class SidebarComponent {
     NAV_SECTIONS
       .map(section => ({
         ...section,
-        items: section.items.filter(item => this.auth.hasAnyRole(item.roles))
+        items: section.items.filter(item =>
+          this.auth.hasAnyRole(item.roles)
+          && !(item.hideFromPlatformAdmin && this.auth.hasRole(Role.PlatformAdmin)))
       }))
       .filter(section => section.items.length > 0));
 }

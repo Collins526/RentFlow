@@ -1,6 +1,7 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { MatTableModule } from '@angular/material/table';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatButtonModule } from '@angular/material/button';
@@ -10,6 +11,8 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatChipsModule } from '@angular/material/chips';
 import { PropertyService, Property } from '../../core/services/property/property.service';
 import { PropertyFormComponent } from './property-form.component';
+import { AuthService } from '../../core/services/auth.service';
+import { Role } from '../../core/auth/roles';
 
 @Component({
   selector: 'app-property-list',
@@ -31,9 +34,17 @@ import { PropertyFormComponent } from './property-form.component';
           <h1 class="text-3xl font-bold text-gray-900">Properties</h1>
           <p class="text-gray-600 mt-2">Manage your organization's properties.</p>
         </div>
-        <button mat-flat-button color="primary" class="!px-6 !py-6" (click)="openPropertyForm()">
+        <button *ngIf="canManageProperties()" mat-flat-button color="primary" class="!px-6 !py-6" (click)="openPropertyForm()">
           <mat-icon>add</mat-icon> Add Property
         </button>
+        <div *ngIf="organizationId && auth.hasRole(Role.PlatformAdmin)" class="flex gap-2">
+          <button mat-stroked-button (click)="openOrganizationTenants()">
+            <mat-icon>people</mat-icon> Tenants
+          </button>
+          <button mat-stroked-button (click)="openOrganizationTenancies()">
+            <mat-icon>assignment_ind</mat-icon> Tenancies
+          </button>
+        </div>
       </div>
 
       <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
@@ -70,6 +81,13 @@ import { PropertyFormComponent } from './property-form.component';
             </td>
           </ng-container>
 
+          <ng-container matColumnDef="units">
+            <th mat-header-cell *matHeaderCellDef class="font-semibold text-gray-600"> Units </th>
+            <td mat-cell *matCellDef="let property" class="text-gray-600">
+              {{ property.units }}
+            </td>
+          </ng-container>
+
           <!-- Status Column -->
           <ng-container matColumnDef="status">
             <th mat-header-cell *matHeaderCellDef class="font-semibold text-gray-600"> Status </th>
@@ -92,7 +110,7 @@ import { PropertyFormComponent } from './property-form.component';
               <button mat-icon-button (click)="navigateToProperty(property); $event.stopPropagation()">
                 <mat-icon>visibility</mat-icon>
               </button>
-              <button mat-icon-button color="primary" (click)="openPropertyForm(property); $event.stopPropagation()">
+              <button *ngIf="canManageProperties()" mat-icon-button color="primary" (click)="openPropertyForm(property); $event.stopPropagation()">
                 <mat-icon>edit</mat-icon>
               </button>
             </td>
@@ -124,22 +142,40 @@ export class PropertyListComponent implements OnInit {
   private propertyService = inject(PropertyService);
   private dialog = inject(MatDialog);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
+  protected auth = inject(AuthService);
+  protected Role = Role;
 
   properties = signal<Property[]>([]);
   isLoading = signal(true);
   totalElements = signal(0);
   pageSize = signal(10);
   pageIndex = signal(0);
+  organizationId: string | undefined;
 
-  displayedColumns: string[] = ['name', 'type', 'address', 'status', 'actions'];
+  displayedColumns: string[] = ['name', 'type', 'address', 'units', 'status', 'actions'];
+
+  canManageProperties(): boolean {
+    return this.auth.hasAnyRole([Role.OrganizationOwner, Role.PropertyManager])
+      && !this.auth.hasRole(Role.PlatformAdmin);
+  }
+
+  openOrganizationTenants(): void {
+    this.router.navigate(['/tenants'], { queryParams: { organizationId: this.organizationId } });
+  }
+
+  openOrganizationTenancies(): void {
+    this.router.navigate(['/tenancies'], { queryParams: { organizationId: this.organizationId } });
+  }
 
   ngOnInit() {
+    this.organizationId = this.route.snapshot.queryParamMap.get('organizationId') ?? undefined;
     this.loadProperties();
   }
 
   loadProperties() {
     this.isLoading.set(true);
-    this.propertyService.getAllProperties(this.pageIndex(), this.pageSize()).subscribe({
+    this.propertyService.getAllProperties(this.pageIndex(), this.pageSize(), this.organizationId).subscribe({
       next: (res) => {
         if (res.success) {
           this.properties.set(res.data.content);

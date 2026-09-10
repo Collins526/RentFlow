@@ -55,10 +55,14 @@ import { UnitListComponent } from '../units/unit-list.component';
         </div>
 
         <!-- Occupancy roll-up -->
-        <div *ngIf="summary() as stats" class="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6">
+        <div *ngIf="summary() as stats" class="grid grid-cols-2 sm:grid-cols-6 gap-4 mt-6">
           <div class="bg-white rounded-2xl shadow-sm border border-gray-100 px-5 py-4">
-            <p class="text-xs uppercase tracking-wide text-gray-500 font-semibold">Total Units</p>
-            <p class="text-2xl font-bold text-gray-900 mt-1">{{ stats.totalUnits }}</p>
+            <p class="text-xs uppercase tracking-wide text-gray-500 font-semibold">Floors</p>
+            <p class="text-2xl font-bold text-gray-900 mt-1">{{ property()!.numberOfFloors }}</p>
+          </div>
+          <div class="bg-white rounded-2xl shadow-sm border border-gray-100 px-5 py-4">
+            <p class="text-xs uppercase tracking-wide text-gray-500 font-semibold">Units</p>
+            <p class="text-2xl font-bold text-gray-900 mt-1">{{ property()!.numberOfUnits }}</p>
           </div>
           <div class="bg-white rounded-2xl shadow-sm border border-gray-100 px-5 py-4">
             <p class="text-xs uppercase tracking-wide text-gray-500 font-semibold">Occupied</p>
@@ -67,6 +71,10 @@ import { UnitListComponent } from '../units/unit-list.component';
           <div class="bg-white rounded-2xl shadow-sm border border-gray-100 px-5 py-4">
             <p class="text-xs uppercase tracking-wide text-gray-500 font-semibold">Vacant</p>
             <p class="text-2xl font-bold text-green-700 mt-1">{{ stats.vacant }}</p>
+          </div>
+          <div class="bg-white rounded-2xl shadow-sm border border-gray-100 px-5 py-4">
+            <p class="text-xs uppercase tracking-wide text-gray-500 font-semibold">Reserved</p>
+            <p class="text-2xl font-bold text-sky-700 mt-1">{{ stats.reserved }}</p>
           </div>
           <div class="bg-white rounded-2xl shadow-sm border border-gray-100 px-5 py-4">
             <p class="text-xs uppercase tracking-wide text-gray-500 font-semibold">Potential Rent</p>

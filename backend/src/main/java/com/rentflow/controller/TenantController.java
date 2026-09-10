@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.UUID;
@@ -44,8 +45,9 @@ public class TenantController {
 
     @GetMapping
     @PreAuthorize(READ_ROLES)
-    public ResponseEntity<ApiResponse<Page<TenantResponse>>> getAllTenants(Pageable pageable) {
-        Page<TenantResponse> tenants = tenantService.getAllTenants(pageable);
+    public ResponseEntity<ApiResponse<Page<TenantResponse>>> getAllTenants(
+            Pageable pageable, @RequestParam(required = false) UUID organizationId) {
+        Page<TenantResponse> tenants = tenantService.getAllTenants(pageable, organizationId);
         return ResponseEntity.ok(ApiResponse.success(tenants, "Tenants fetched successfully"));
     }
 

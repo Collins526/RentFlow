@@ -18,6 +18,7 @@ export type RoleName = (typeof Role)[keyof typeof Role];
  * and dashboard controllers.
  */
 export const PORTFOLIO_READ_ROLES: RoleName[] = [
+  Role.PlatformAdmin,
   Role.OrganizationOwner,
   Role.PropertyManager,
   Role.Accountant
@@ -25,6 +26,7 @@ export const PORTFOLIO_READ_ROLES: RoleName[] = [
 
 /** Mirrors the controllers' `MANAGE_ROLES`. */
 export const PORTFOLIO_MANAGE_ROLES: RoleName[] = [
+  Role.PlatformAdmin,
   Role.OrganizationOwner,
   Role.PropertyManager
 ];

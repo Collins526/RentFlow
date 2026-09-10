@@ -49,7 +49,7 @@ describe('SidebarComponent role-based navigation', () => {
     expect(labels).toContain('Properties');
     expect(labels).toContain('Tenants');
     expect(labels).toContain('Tenancies');
-    expect(labels).toContain('Organization');
+    expect(labels).toContain('Organizations');
   });
 
   it('hides Organization from a property manager', () => {

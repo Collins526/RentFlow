@@ -13,4 +13,7 @@ public interface OrganizationService {
     OrganizationResponse getMyOrganization();
     OrganizationResponse updateMyOrganization(OrganizationUpdateRequest request);
         OrganizationResponse updateOrganizationById(UUID id, OrganizationUpdateRequest request);
+        void deleteOrganizationById(UUID id);
+    void suspendOrganizationById(UUID id);
+    void activateOrganizationById(UUID id);
 }

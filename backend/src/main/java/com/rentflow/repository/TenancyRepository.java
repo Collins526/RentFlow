@@ -5,6 +5,7 @@ import com.rentflow.entity.enums.TenancyStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -15,6 +16,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.time.Instant;
 
 
 public interface TenancyRepository extends JpaRepository<Tenancy, UUID> {
@@ -42,6 +44,16 @@ public interface TenancyRepository extends JpaRepository<Tenancy, UUID> {
 
     long countByOrganizationIdAndStatusAndDeletedAtIsNull(UUID organizationId, TenancyStatus status);
 
+        long countByStatusAndDeletedAtIsNull(TenancyStatus status);
+
+            @Modifying
+            @Query("UPDATE Tenancy t SET t.deletedAt = :deletedAt WHERE t.organizationId = :organizationId AND t.deletedAt IS NULL")
+            int softDeleteByOrganizationId(@Param("organizationId") UUID organizationId, @Param("deletedAt") Instant deletedAt);
+
+            @Query("SELECT COUNT(t) FROM Tenancy t JOIN Organization o ON t.organizationId = o.id "
+                    + "WHERE o.deletedAt IS NULL AND t.status = :status AND t.deletedAt IS NULL")
+            long countForActiveOrganizationsByStatus(@Param("status") TenancyStatus status);
+
     /**
      * Rent contracted through tenancies in a given status. Returns 0 rather than null
      * when the organization has none.
@@ -50,6 +62,10 @@ public interface TenancyRepository extends JpaRepository<Tenancy, UUID> {
             + "WHERE t.organizationId = :organizationId AND t.status = :status AND t.deletedAt IS NULL")
     BigDecimal sumRentByStatus(@Param("organizationId") UUID organizationId,
                                @Param("status") TenancyStatus status);
+
+    @Query("SELECT COALESCE(SUM(t.rentAmount), 0) FROM Tenancy t JOIN Organization o ON t.organizationId = o.id "
+            + "WHERE o.deletedAt IS NULL AND t.status = :status AND t.deletedAt IS NULL")
+    BigDecimal sumRentForAllOrganizationsByStatus(@Param("status") TenancyStatus status);
 
     /**
      * Finds live tenancies on a unit whose occupancy window intersects

@@ -10,6 +10,7 @@ export interface Organization {
   phone: string;
   address: string;
   logoUrl: string;
+  status: string;
 }
 
 export interface OrganizationUpdateRequest {
@@ -73,5 +74,17 @@ export class OrganizationService {
         }
       })
     );
+  }
+
+  deleteOrganizationById(id: string): Observable<ApiResponse<void>> {
+    return this.http.delete<ApiResponse<void>>(`${this.apiUrl}/${id}`);
+  }
+
+  suspendOrganization(id: string): Observable<ApiResponse<void>> {
+    return this.http.post<ApiResponse<void>>(`${this.apiUrl}/${id}/suspend`, {});
+  }
+
+  activateOrganization(id: string): Observable<ApiResponse<void>> {
+    return this.http.post<ApiResponse<void>>(`${this.apiUrl}/${id}/activate`, {});
   }
 }

@@ -53,8 +53,9 @@ public class TenancyController {
             @RequestParam(required = false) TenancyStatus status,
             @RequestParam(required = false) UUID tenantId,
             @RequestParam(required = false) UUID unitId,
+            @RequestParam(required = false) UUID organizationId,
             Pageable pageable) {
-        Page<TenancyResponse> tenancies = tenancyService.getTenancies(status, tenantId, unitId, pageable);
+        Page<TenancyResponse> tenancies = tenancyService.getTenancies(status, tenantId, unitId, organizationId, pageable);
         return ResponseEntity.ok(ApiResponse.success(tenancies, "Tenancies fetched successfully"));
     }
 

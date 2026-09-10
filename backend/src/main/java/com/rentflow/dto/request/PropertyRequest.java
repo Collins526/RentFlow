@@ -2,6 +2,7 @@ package com.rentflow.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.Min;
 import lombok.Data;
 
 @Data
@@ -34,4 +35,10 @@ public class PropertyRequest {
     
     @Size(max = 50, message = "Status cannot exceed 50 characters")
     private String status;
+
+    @Min(value = 0, message = "Number of units cannot be negative")
+    private Integer numberOfUnits = 0;
+
+    @Min(value = 0, message = "Number of floors cannot be negative")
+    private Integer numberOfFloors = 0;
 }

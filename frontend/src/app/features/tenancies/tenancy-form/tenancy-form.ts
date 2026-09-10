@@ -1,5 +1,6 @@
 import { Component, Inject, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatDialog, MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -81,7 +82,10 @@ import { TenantCredentialsDialog } from '../tenant-credentials-dialog/tenant-cre
               </mat-option>
             </mat-select>
             <mat-hint *ngIf="form.get('propertyId')?.value && !isLoadingUnits() && units().length === 0">
-              This property has no units yet.
+              This property has no created units. Add a unit before creating a tenancy.
+              <button mat-button type="button" class="!px-1 !min-w-0" (click)="openUnitManager()">
+                Manage units
+              </button>
             </mat-hint>
             <mat-hint *ngIf="!form.get('propertyId')?.value">Pick a property first.</mat-hint>
             <mat-error *ngIf="form.get('unitId')?.hasError('required')">Unit is required</mat-error>
@@ -153,6 +157,7 @@ export class TenancyForm implements OnInit {
   private propertyService = inject(PropertyService);
   private unitService = inject(UnitService);
   private dialog = inject(MatDialog);
+  private router = inject(Router);
 
   form: FormGroup;
   readonly statuses = TENANCY_STATUSES;
@@ -252,6 +257,16 @@ export class TenancyForm implements OnInit {
     if (propertyId) {
       this.loadUnits(propertyId);
     }
+  }
+
+  openUnitManager(): void {
+    const propertyId = this.form.get('propertyId')?.value;
+    if (!propertyId) {
+      return;
+    }
+
+    this.dialogRef.close();
+    this.router.navigate(['/properties', propertyId]);
   }
 
   private loadTenants(): void {

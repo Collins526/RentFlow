@@ -23,7 +23,7 @@ public class PropertyController {
     private final PropertyService propertyService;
 
     @PostMapping
-    @PreAuthorize("hasRole('ORGANIZATION_OWNER') or hasRole('PROPERTY_MANAGER')")
+    @PreAuthorize("(hasRole('ORGANIZATION_OWNER') or hasRole('PROPERTY_MANAGER')) and !hasRole('PLATFORM_ADMIN')")
     public ResponseEntity<ApiResponse<PropertyResponse>> createProperty(@Valid @RequestBody PropertyRequest request) {
         PropertyResponse property = propertyService.createProperty(request);
         return new ResponseEntity<>(ApiResponse.success(property, "Property created successfully"), HttpStatus.CREATED);
@@ -31,8 +31,9 @@ public class PropertyController {
 
     @GetMapping
     @PreAuthorize("hasRole('ORGANIZATION_OWNER') or hasRole('PROPERTY_MANAGER') or hasRole('STAFF')")
-    public ResponseEntity<ApiResponse<Page<PropertyResponse>>> getAllProperties(Pageable pageable) {
-        Page<PropertyResponse> properties = propertyService.getAllProperties(pageable);
+    public ResponseEntity<ApiResponse<Page<PropertyResponse>>> getAllProperties(
+            Pageable pageable, @RequestParam(required = false) UUID organizationId) {
+        Page<PropertyResponse> properties = propertyService.getAllProperties(pageable, organizationId);
         return ResponseEntity.ok(ApiResponse.success(properties, "Properties fetched successfully"));
     }
 
@@ -44,7 +45,7 @@ public class PropertyController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ORGANIZATION_OWNER') or hasRole('PROPERTY_MANAGER')")
+    @PreAuthorize("(hasRole('ORGANIZATION_OWNER') or hasRole('PROPERTY_MANAGER')) and !hasRole('PLATFORM_ADMIN')")
     public ResponseEntity<ApiResponse<PropertyResponse>> updateProperty(
             @PathVariable UUID id, @Valid @RequestBody PropertyRequest request) {
         PropertyResponse property = propertyService.updateProperty(id, request);
@@ -52,7 +53,7 @@ public class PropertyController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ORGANIZATION_OWNER')")
+    @PreAuthorize("(hasRole('ORGANIZATION_OWNER') or hasRole('PROPERTY_MANAGER')) and !hasRole('PLATFORM_ADMIN')")
     public ResponseEntity<ApiResponse<Void>> deleteProperty(@PathVariable UUID id) {
         propertyService.deleteProperty(id);
         return ResponseEntity.ok(ApiResponse.success(null, "Property deleted successfully"));

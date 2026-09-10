@@ -18,4 +18,5 @@ public class OrganizationResponse {
     private String phone;
     private String address;
     private String logoUrl;
+    private String status;
 }

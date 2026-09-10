@@ -89,6 +89,6 @@ export class TopbarComponent {
   toggleSidebar = output<void>();
 
   protected canManageOrganization(): boolean {
-    return this.auth.hasAnyRole([Role.OrganizationOwner, Role.PlatformAdmin]);
+    return this.auth.hasRole(Role.OrganizationOwner) && !this.auth.hasRole(Role.PlatformAdmin);
   }
 }

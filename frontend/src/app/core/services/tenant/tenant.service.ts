@@ -13,10 +13,13 @@ export class TenantService {
 
   constructor(private http: HttpClient) {}
 
-  getAllTenants(page: number = 0, size: number = 10): Observable<ApiResponse<Page<Tenant>>> {
-    const params = new HttpParams()
+  getAllTenants(page: number = 0, size: number = 10, organizationId?: string): Observable<ApiResponse<Page<Tenant>>> {
+    let params = new HttpParams()
       .set('page', page.toString())
       .set('size', size.toString());
+    if (organizationId) {
+      params = params.set('organizationId', organizationId);
+    }
     return this.http.get<ApiResponse<Page<Tenant>>>(this.apiUrl, { params });
   }
 

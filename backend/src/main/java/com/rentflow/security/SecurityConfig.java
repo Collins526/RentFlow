@@ -5,6 +5,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -37,10 +39,21 @@ public class SecurityConfig {
     }
 
     @Bean
+    public RoleHierarchy roleHierarchy() {
+        return RoleHierarchyImpl.fromHierarchy("""
+                ROLE_PLATFORM_ADMIN > ROLE_ORGANIZATION_ADMIN
+                ROLE_PLATFORM_ADMIN > ROLE_ORGANIZATION_OWNER
+                ROLE_PLATFORM_ADMIN > ROLE_PROPERTY_MANAGER
+                ROLE_PLATFORM_ADMIN > ROLE_ACCOUNTANT
+                ROLE_PLATFORM_ADMIN > ROLE_TENANT
+                """);
+    }
+
+    @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.cors(cors -> cors.configurationSource(request -> {
                 var config = new org.springframework.web.cors.CorsConfiguration();
-                config.setAllowedOrigins(java.util.List.of("http://localhost:4201"));
+                config.setAllowedOrigins(java.util.List.of("http://localhost:4200", "http://localhost:4201"));
                 config.setAllowedMethods(java.util.List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
                 config.setAllowedHeaders(java.util.List.of("Authorization", "Cache-Control", "Content-Type"));
                 config.setAllowCredentials(true);

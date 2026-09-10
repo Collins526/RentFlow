@@ -16,6 +16,7 @@ public interface TenantService {
     TenantResponse getTenantById(UUID id);
     
     Page<TenantResponse> getAllTenants(Pageable pageable);
+    Page<TenantResponse> getAllTenants(Pageable pageable, UUID organizationId);
     
     void deleteTenant(UUID id);
 }

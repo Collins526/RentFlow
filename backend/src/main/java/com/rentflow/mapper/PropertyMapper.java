@@ -25,6 +25,8 @@ public class PropertyMapper {
                 .country(property.getCountry())
                 .description(property.getDescription())
                 .status(property.getStatus())
+                .numberOfUnits(property.getNumberOfUnits())
+                .numberOfFloors(property.getNumberOfFloors())
                 .build();
     }
 
@@ -44,6 +46,8 @@ public class PropertyMapper {
                 .country(request.getCountry())
                 .description(request.getDescription())
                 .status(request.getStatus() != null ? request.getStatus() : "ACTIVE")
+                .numberOfUnits(request.getNumberOfUnits() != null ? request.getNumberOfUnits() : 0)
+                .numberOfFloors(request.getNumberOfFloors() != null ? request.getNumberOfFloors() : 0)
                 .build();
     }
 }

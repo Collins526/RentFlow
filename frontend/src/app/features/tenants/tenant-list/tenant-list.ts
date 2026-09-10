@@ -5,6 +5,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDialog } from '@angular/material/dialog';
 import { MatMenuModule } from '@angular/material/menu';
+import { ActivatedRoute } from '@angular/router';
 import { TenantService } from '../../../core/services/tenant/tenant.service';
 import { ToastService, resolveApiMessage } from '../../../core/services/toast.service';
 import { formatEnumLabel } from '../../../core/services/unit/unit.service';
@@ -38,7 +39,7 @@ import {
     <app-page-header
       title="Tenants"
       [subtitle]="subtitle()">
-      <button actions mat-flat-button color="primary" (click)="openTenantForm()">
+      <button *ngIf="!organizationId" actions mat-flat-button color="primary" (click)="openTenantForm()">
         <mat-icon>add</mat-icon>
         Add Tenant
       </button>
@@ -104,6 +105,7 @@ export class TenantList implements OnInit {
   private tenantService = inject(TenantService);
   private dialog = inject(MatDialog);
   private toast = inject(ToastService);
+  private route = inject(ActivatedRoute);
 
   readonly formatLabel = formatEnumLabel;
   readonly statusTone = statusTone;
@@ -114,6 +116,7 @@ export class TenantList implements OnInit {
   totalElements = signal(0);
   pageSize = signal(10);
   pageIndex = signal(0);
+  organizationId = this.route.snapshot.queryParamMap.get('organizationId') ?? undefined;
 
   readonly columns: DataTableColumn<Tenant>[] = [
     {
@@ -149,7 +152,7 @@ export class TenantList implements OnInit {
     this.isLoading.set(true);
     this.loadError.set(null);
 
-    this.tenantService.getAllTenants(this.pageIndex(), this.pageSize()).subscribe({
+    this.tenantService.getAllTenants(this.pageIndex(), this.pageSize(), this.organizationId).subscribe({
       next: res => {
         this.tenants.set(res.data?.content ?? []);
         this.totalElements.set(res.data?.totalElements ?? 0);

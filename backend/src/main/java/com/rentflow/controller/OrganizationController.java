@@ -56,4 +56,25 @@ public class OrganizationController {
         OrganizationResponse updatedOrganization = organizationService.updateOrganizationById(id, request);
         return ResponseEntity.ok(ApiResponse.success(updatedOrganization, "Organization updated successfully"));
     }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('PLATFORM_ADMIN')")
+    public ResponseEntity<ApiResponse<Void>> deleteOrganizationById(@PathVariable UUID id) {
+        organizationService.deleteOrganizationById(id);
+        return ResponseEntity.ok(ApiResponse.success(null, "Organization and its properties deleted successfully"));
+    }
+
+    @PostMapping("/{id}/suspend")
+    @PreAuthorize("hasRole('PLATFORM_ADMIN')")
+    public ResponseEntity<ApiResponse<Void>> suspendOrganization(@PathVariable UUID id) {
+        organizationService.suspendOrganizationById(id);
+        return ResponseEntity.ok(ApiResponse.success(null, "Organization suspended successfully"));
+    }
+
+    @PostMapping("/{id}/activate")
+    @PreAuthorize("hasRole('PLATFORM_ADMIN')")
+    public ResponseEntity<ApiResponse<Void>> activateOrganization(@PathVariable UUID id) {
+        organizationService.activateOrganizationById(id);
+        return ResponseEntity.ok(ApiResponse.success(null, "Organization activated successfully"));
+    }
 }

@@ -25,4 +25,12 @@ public interface BlockRepository extends JpaRepository<Block, UUID> {
     @Query("SELECT COUNT(b) FROM Block b JOIN Property p ON b.propertyId = p.id "
             + "WHERE p.organizationId = :organizationId")
     long countByOrganizationId(@Param("organizationId") UUID organizationId);
+
+    @Query("SELECT COUNT(b) FROM Block b JOIN Property p ON b.propertyId = p.id "
+            + "WHERE p.organizationId = :organizationId AND p.deletedAt IS NULL AND b.deletedAt IS NULL")
+    long countActiveByOrganizationId(@Param("organizationId") UUID organizationId);
+
+    @Query("SELECT COUNT(b) FROM Block b JOIN Property p ON b.propertyId = p.id "
+            + "WHERE p.deletedAt IS NULL AND b.deletedAt IS NULL")
+    long countForActiveProperties();
 }

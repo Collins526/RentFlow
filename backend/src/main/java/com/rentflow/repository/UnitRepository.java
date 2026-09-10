@@ -28,6 +28,8 @@ public interface UnitRepository extends JpaRepository<Unit, UUID> {
 
     Page<Unit> findByPropertyIdAndDeletedAtIsNull(UUID propertyId, Pageable pageable);
 
+        long countByPropertyIdAndDeletedAtIsNull(UUID propertyId);
+
     Page<Unit> findByPropertyIdAndOccupancyStatusAndDeletedAtIsNull(
             UUID propertyId, OccupancyStatus occupancyStatus, Pageable pageable);
 
@@ -63,4 +65,14 @@ public interface UnitRepository extends JpaRepository<Unit, UUID> {
             + "WHERE p.organizationId = :organizationId AND u.deletedAt IS NULL "
             + "GROUP BY u.occupancyStatus")
     List<Object[]> countByOccupancyStatusForOrganization(@Param("organizationId") UUID organizationId);
+
+        @Query("SELECT u.occupancyStatus, COUNT(u), COALESCE(SUM(u.rentAmount), 0) FROM Unit u "
+                        + "JOIN Property p ON u.propertyId = p.id "
+                        + "WHERE p.deletedAt IS NULL AND u.deletedAt IS NULL "
+                        + "GROUP BY u.occupancyStatus")
+        List<Object[]> countByOccupancyStatusForAllOrganizations();
+
+        @Query("SELECT COUNT(u) FROM Unit u JOIN Property p ON u.propertyId = p.id "
+                        + "WHERE p.organizationId = :organizationId AND p.deletedAt IS NULL AND u.deletedAt IS NULL")
+        long countByOrganizationId(@Param("organizationId") UUID organizationId);
 }
