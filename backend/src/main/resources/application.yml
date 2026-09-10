@@ -40,7 +40,7 @@ app:
     consumer-secret: ${MPESA_CONSUMER_SECRET}
     short-code: ${MPESA_SHORTCODE}
     passkey: ${MPESA_PASSKEY}
-    callback-url: ${MPESA_CALLBACK_URL:https://rentflow-sandbox.example.com/api/v1/mpesa/callback}
+    callback-url: ${MPESA_CALLBACK_URL:https://rentflow-backend-ssig.onrender.com/api/v1/mpesa/callback}
     environment: ${MPESA_ENVIRONMENT:sandbox}
     account-reference: RentFlow
     transaction-desc: Rent payment
