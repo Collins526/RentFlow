@@ -1,7 +1,6 @@
 package com.rentflow.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.rentflow.common.ApiResponse;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -29,8 +28,7 @@ public class AuthEntryPointJwt implements AuthenticationEntryPoint {
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 
-        ApiResponse<Void> apiResponse = ApiResponse.error("Unauthorized: " + authException.getMessage(), null);
-        
-        objectMapper.writeValue(response.getOutputStream(), apiResponse);
+        String message = objectMapper.writeValueAsString("Unauthorized: " + authException.getMessage());
+        response.getWriter().write("{\"success\":false,\"message\":" + message + "}");
     }
 }
