@@ -16,6 +16,8 @@ spring:
       minimum-idle: ${DB_POOL_MIN_IDLE:0}
       connection-timeout: ${DB_CONNECTION_TIMEOUT_MS:30000}
       idle-timeout: ${DB_IDLE_TIMEOUT_MS:600000}
+      data-source-properties:
+        prepareThreshold: ${DB_PREPARE_THRESHOLD:0}
   jpa:
     hibernate:
       ddl-auto: validate
