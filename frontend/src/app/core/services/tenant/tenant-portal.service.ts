@@ -123,6 +123,10 @@ export class TenantPortalService {
     return this.http.post<ApiResponse<any>>(`${this.apiUrl}/payments`, request);
   }
 
+  deletePayment(paymentId: string): Observable<ApiResponse<void>> {
+    return this.http.delete<ApiResponse<void>>(`${this.apiUrl}/payments/${paymentId}`);
+  }
+
   initiateMpesaStkPush(request: MpesaStkPushRequest): Observable<ApiResponse<any>> {
     return this.http.post<ApiResponse<any>>(`${this.apiUrl}/mpesa/stk-push`, request);
   }

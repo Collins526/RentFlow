@@ -45,7 +45,7 @@ import { TenantInvoice, TenantPortalService } from '../../core/services/tenant/t
             </div>
             <div class="text-right">
               <p class="text-xl font-bold text-slate-900">{{ item.amount | currency:'KES ':'symbol':'1.0-2' }}</p>
-              <span class="rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-700">{{ item.status }}</span>
+              <span class="rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-700">{{ invoiceStatusLabel(item.status) }}</span>
             </div>
             </div>
             <div class="mt-3 flex flex-wrap items-center gap-4 text-sm text-slate-500">
@@ -61,13 +61,13 @@ import { TenantInvoice, TenantPortalService } from '../../core/services/tenant/t
               <p><span class="font-semibold text-slate-900">Billing month:</span> {{ (item.periodStart || item.periodEnd) | date:'MMMM yyyy' }}</p>
               <p><span class="font-semibold text-slate-900">Amount:</span> {{ item.amount | currency:'KES ':'symbol':'1.0-2' }}</p>
               <p><span class="font-semibold text-slate-900">Payment deadline:</span> {{ (item.dueDate || item.periodEnd) | date:'mediumDate' }}</p>
-              <p><span class="font-semibold text-slate-900">Status:</span> {{ item.status }}</p>
+              <p><span class="font-semibold text-slate-900">Status:</span> {{ invoiceStatusLabel(item.status) }}</p>
             </div>
             <div *ngIf="item.notes" class="mt-3 rounded-lg border border-slate-200 bg-white p-3 text-sm text-slate-600">{{ item.notes }}</div>
             <div class="mt-4 flex justify-end">
-              <button mat-flat-button color="primary" type="button" (click)="payInvoice(item); $event.stopPropagation()" [disabled]="item.status === 'PAID'">
+              <button mat-flat-button color="primary" type="button" (click)="payInvoice(item); $event.stopPropagation()" [disabled]="item.status === 'PAID' || item.status === 'SETTLED'">
                 <mat-icon>payments</mat-icon>
-                {{ item.status === 'PAID' ? 'Paid' : 'Pay invoice' }}
+                {{ item.status === 'PAID' || item.status === 'SETTLED' ? 'Settled' : 'Pay invoice' }}
               </button>
             </div>
           </div>
@@ -86,6 +86,8 @@ export class TenantInvoicesComponent implements OnInit {
   loading = signal(true);
   error = signal<string | null>(null);
   expandedInvoiceId = signal<string | null>(null);
+
+  invoiceStatusLabel(status: string): string { return status === 'PAID' ? 'SETTLED' : status; }
 
   toggleDetails(invoiceId: string): void {
     this.expandedInvoiceId.update(current => current === invoiceId ? null : invoiceId);

@@ -63,6 +63,10 @@ public class PaymentServiceImpl implements PaymentService {
 
         Payment saved = paymentRepository.save(payment);
 
+        if (saved.getStatus() == PaymentStatus.COMPLETED) {
+            settleInvoice(saved);
+        }
+
         // TODO: create ledger entry and apply to invoice balance
 
         return PaymentMapper.toDto(saved);
@@ -121,7 +125,27 @@ public class PaymentServiceImpl implements PaymentService {
         Payment p = paymentRepository.findByIdAndOrganizationIdAndDeletedAtIsNull(id, organizationId)
                 .orElseThrow(() -> new ResourceNotFoundException("Payment not found"));
 
+        if (SecurityUtils.hasRole("TENANT")) {
+            UUID currentTenantId = SecurityUtils.getCurrentUserTenantIdOrNull();
+            if (currentTenantId == null || !currentTenantId.equals(p.getTenantId())) {
+                throw new UnauthorizedException("Tenant can only delete their own payments");
+            }
+        }
+
         p.setDeletedAt(Instant.now());
         paymentRepository.save(p);
+    }
+
+    private void settleInvoice(Payment payment) {
+        if (payment.getInvoiceId() == null) {
+            return;
+        }
+
+        rentInvoiceRepository.findByIdAndOrganizationIdAndDeletedAtIsNull(
+                        payment.getInvoiceId(), payment.getOrganizationId())
+                .ifPresent(invoice -> {
+                    invoice.setStatus(com.rentflow.entity.enums.InvoiceStatus.PAID);
+                    rentInvoiceRepository.save(invoice);
+                });
     }
 }

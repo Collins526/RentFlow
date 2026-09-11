@@ -6,6 +6,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { CreateTenantPaymentRequest, TenantPayment, TenantPortalService } from '../../core/services/tenant/tenant-portal.service';
@@ -21,7 +22,8 @@ import { CreateTenantPaymentRequest, TenantPayment, TenantPortalService } from '
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
-    MatSelectModule
+    MatSelectModule,
+    MatTooltipModule
   ],
   template: `
     <div class="space-y-6 p-6">
@@ -165,8 +167,19 @@ import { CreateTenantPaymentRequest, TenantPayment, TenantPortalService } from '
               </span>
             </div>
           </div>
-          <div class="mt-3 text-sm text-slate-500">
-            Paid on {{ (item.paymentDate || item.id) | date:'mediumDate' }}
+          <div class="mt-3 flex items-center justify-between gap-3 text-sm text-slate-500">
+            <span>Paid on {{ (item.paymentDate || item.id) | date:'mediumDate' }}</span>
+            <button
+              mat-icon-button
+              type="button"
+              color="warn"
+              aria-label="Delete payment"
+              matTooltip="Delete payment"
+              (click)="deletePayment(item); $event.stopPropagation()"
+              [disabled]="deletingPaymentId() === item.id"
+            >
+              <mat-icon>delete</mat-icon>
+            </button>
           </div>
         </div>
       </div>
@@ -188,6 +201,7 @@ export class TenantPaymentsComponent implements OnInit {
   submitState = signal<'success' | 'error' | null>(null);
   isAwaitingMpesaConfirmation = signal(false);
   paymentsVisible = signal(true);
+  deletingPaymentId = signal<string | null>(null);
 
   private mpesaPollTimer: any = null;
 
@@ -199,6 +213,25 @@ export class TenantPaymentsComponent implements OnInit {
 
   togglePaymentsVisibility(): void {
     this.paymentsVisible.update(visible => !visible);
+  }
+
+  deletePayment(payment: TenantPayment): void {
+    if (!window.confirm('Delete this payment record?')) {
+      return;
+    }
+
+    this.deletingPaymentId.set(payment.id);
+    this.service.deletePayment(payment.id).subscribe({
+      next: () => {
+        this.items.update(items => items.filter(item => item.id !== payment.id));
+        this.deletingPaymentId.set(null);
+      },
+      error: err => {
+        this.deletingPaymentId.set(null);
+        this.submitState.set('error');
+        this.submitMessage.set(err?.error?.message || 'Unable to delete the payment right now.');
+      }
+    });
   }
 
   selectPaymentType(type: 'rent' | 'security-deposit'): void {

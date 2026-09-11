@@ -107,7 +107,7 @@ import { PageHeaderComponent, StatusChipComponent, statusTone } from '../../shar
             </div>
             <div class="text-right">
               <p class="text-lg font-bold text-slate-900">{{ invoice.amount | currency:'KES ':'symbol':'1.0-2' }}</p>
-              <app-status-chip [label]="formatLabel(invoice.status)" [tone]="statusTone(invoice.status)"></app-status-chip>
+              <app-status-chip [label]="formatLabel(invoiceStatus(invoice.status))" [tone]="statusTone(invoice.status)"></app-status-chip>
             </div>
           </div>
           <div class="mt-3 flex flex-wrap gap-4 text-sm text-slate-500">
@@ -159,6 +159,7 @@ export class InvoiceListComponent implements OnInit {
   tenantName(tenant: Tenant): string { return tenant.tenantType === 'CORPORATE' ? tenant.companyName || tenant.email : `${tenant.firstName || ''} ${tenant.lastName || ''}`.trim() || tenant.email; }
   currency(amount?: number | null): string { return amount == null ? 'Rent not set' : `KES ${amount.toLocaleString()}`; }
   monthLabel(date: string): string { return new Date(`${date}T00:00:00`).toLocaleDateString(undefined, { month: 'long', year: 'numeric' }); }
+  invoiceStatus(status: string): string { return status === 'PAID' ? 'SETTLED' : status; }
 
   onTenantChange(): void {
     const tenantId = this.form.get('tenantId')?.value ?? '';

@@ -52,7 +52,7 @@ public class PaymentController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ORGANIZATION_OWNER')")
+    @PreAuthorize("hasRole('ORGANIZATION_OWNER') or hasRole('TENANT')")
     public ResponseEntity<ApiResponse<Void>> deletePayment(@PathVariable UUID id) {
         paymentService.deletePayment(id);
         return ResponseEntity.ok(ApiResponse.success(null, "Payment deleted"));

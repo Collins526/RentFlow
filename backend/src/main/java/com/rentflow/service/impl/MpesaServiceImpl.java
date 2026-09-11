@@ -183,6 +183,14 @@ public class MpesaServiceImpl implements MpesaService {
                         payment.setPaidAt(Instant.now());
                     }
                     paymentRepository.save(payment);
+                    if (resultCode == 0 && payment.getInvoiceId() != null) {
+                        rentInvoiceRepository.findByIdAndOrganizationIdAndDeletedAtIsNull(
+                                        payment.getInvoiceId(), payment.getOrganizationId())
+                                .ifPresent(invoice -> {
+                                    invoice.setStatus(com.rentflow.entity.enums.InvoiceStatus.PAID);
+                                    rentInvoiceRepository.save(invoice);
+                                });
+                    }
                     log.info("Updated payment {} from M-Pesa callback: resultCode={}, resultDesc={}", payment.getId(), resultCode, resultDesc);
                 });
     }

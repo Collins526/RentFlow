@@ -11,6 +11,7 @@ import com.rentflow.exception.ResourceNotFoundException;
 import com.rentflow.exception.UnauthorizedException;
 import com.rentflow.mapper.RentInvoiceMapper;
 import com.rentflow.repository.RentInvoiceRepository;
+import com.rentflow.repository.PaymentRepository;
 import com.rentflow.repository.TenantRepository;
 import com.rentflow.repository.UnitRepository;
 import com.rentflow.security.SecurityUtils;
@@ -30,6 +31,7 @@ import java.util.UUID;
 public class RentBillingServiceImpl implements RentBillingService {
 
     private final RentInvoiceRepository rentInvoiceRepository;
+    private final PaymentRepository paymentRepository;
     private final TenantRepository tenantRepository;
     private final UnitRepository unitRepository;
 
@@ -119,6 +121,7 @@ public class RentBillingServiceImpl implements RentBillingService {
             }
         }
 
+        settleInvoiceFromCompletedPayment(invoice);
         Tenant tenant = tenantRepository.findById(invoice.getTenantId()).orElse(null);
         Unit unit = unitRepository.findById(invoice.getUnitId()).orElse(null);
 
@@ -126,7 +129,7 @@ public class RentBillingServiceImpl implements RentBillingService {
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public Page<RentInvoiceResponse> getInvoices(com.rentflow.entity.enums.InvoiceStatus status, UUID tenantId, UUID unitId, Pageable pageable) {
         UUID organizationId = SecurityUtils.getCurrentUserOrganizationId();
 
@@ -153,9 +156,12 @@ public class RentBillingServiceImpl implements RentBillingService {
             page = rentInvoiceRepository.findByOrganizationIdAndDeletedAtIsNull(organizationId, pageable);
         }
 
-        return page.map(inv -> RentInvoiceMapper.toDto(inv,
+        return page.map(inv -> {
+            settleInvoiceFromCompletedPayment(inv);
+            return RentInvoiceMapper.toDto(inv,
                 tenantRepository.findById(inv.getTenantId()).orElse(null),
-                unitRepository.findById(inv.getUnitId()).orElse(null)));
+            unitRepository.findById(inv.getUnitId()).orElse(null));
+        });
     }
 
     @Override
@@ -175,5 +181,16 @@ public class RentBillingServiceImpl implements RentBillingService {
     private RentInvoice getInvoiceOrThrow(UUID id, UUID organizationId) {
         return rentInvoiceRepository.findByIdAndOrganizationIdAndDeletedAtIsNull(id, organizationId)
                 .orElseThrow(() -> new ResourceNotFoundException("Invoice not found with id: " + id));
+    }
+
+    private void settleInvoiceFromCompletedPayment(RentInvoice invoice) {
+        if (invoice.getStatus() == InvoiceStatus.PAID
+                || !paymentRepository.existsByInvoiceIdAndStatusAndDeletedAtIsNull(invoice.getId(),
+                com.rentflow.entity.enums.PaymentStatus.COMPLETED)) {
+            return;
+        }
+
+        invoice.setStatus(InvoiceStatus.PAID);
+        rentInvoiceRepository.save(invoice);
     }
 }
