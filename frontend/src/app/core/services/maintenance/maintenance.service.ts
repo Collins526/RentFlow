@@ -7,7 +7,9 @@ import { Page } from '../property/property.service';
 export interface MaintenanceRequestItem {
   id: string;
   tenantId: string;
+  tenantName?: string;
   unitId?: string;
+  unitNumber?: string;
   title: string;
   description?: string;
   attachmentData?: string;

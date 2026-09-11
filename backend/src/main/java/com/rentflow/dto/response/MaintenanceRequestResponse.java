@@ -21,7 +21,9 @@ public class MaintenanceRequestResponse {
     private UUID id;
     private UUID organizationId;
     private UUID tenantId;
+    private String tenantName;
     private UUID unitId;
+    private String unitNumber;
     private UUID tenancyId;
     private String title;
     private String description;

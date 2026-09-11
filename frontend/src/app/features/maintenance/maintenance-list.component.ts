@@ -31,7 +31,7 @@ import { PageHeaderComponent, StatusChipComponent, statusTone } from '../../shar
         <div>
           <p class="text-xs font-semibold uppercase tracking-wide text-indigo-600">{{ request.priority }} priority</p>
           <h2 class="mt-1 text-lg font-semibold text-slate-900">{{ request.title }}</h2>
-          <p class="mt-1 text-sm text-slate-500">Tenant ID: {{ request.tenantId }} · Unit ID: {{ request.unitId || 'Not specified' }}</p>
+          <p class="mt-1 text-sm text-slate-500">Tenant: {{ request.tenantName || request.tenantId }} · Unit: {{ request.unitNumber || request.unitId || 'Not specified' }}</p>
         </div>
         <app-status-chip [label]="request.status" [tone]="statusTone(request.status)"></app-status-chip>
         </div>
@@ -45,8 +45,8 @@ import { PageHeaderComponent, StatusChipComponent, statusTone } from '../../shar
 
       <div *ngIf="expandedRequestId() === request.id" class="border-t border-slate-200 bg-slate-50 p-5">
         <div class="grid gap-3 text-sm text-slate-600 sm:grid-cols-2">
-          <p><span class="font-semibold text-slate-900">Tenant ID:</span> {{ request.tenantId }}</p>
-          <p><span class="font-semibold text-slate-900">Unit ID:</span> {{ request.unitId || 'Not specified' }}</p>
+          <p><span class="font-semibold text-slate-900">Tenant:</span> {{ request.tenantName || request.tenantId }}</p>
+          <p><span class="font-semibold text-slate-900">Unit:</span> {{ request.unitNumber || request.unitId || 'Not specified' }}</p>
           <p><span class="font-semibold text-slate-900">Priority:</span> {{ request.priority }}</p>
           <p><span class="font-semibold text-slate-900">Status:</span> {{ request.status }}</p>
           <p><span class="font-semibold text-slate-900">Submitted:</span> {{ request.requestedDate | date:'mediumDate' }}</p>
