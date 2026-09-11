@@ -98,7 +98,8 @@ export class TenantPortalService {
     const params = new HttpParams()
       .set('tenantId', tenantId)
       .set('page', page.toString())
-      .set('size', size.toString());
+      .set('size', size.toString())
+      .set('sort', 'createdAt,desc');
 
     return this.http.get<ApiResponse<Page<TenantPayment>>>(`${this.apiUrl}/payments`, { params });
   }

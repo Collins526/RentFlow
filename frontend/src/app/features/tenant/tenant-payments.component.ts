@@ -157,7 +157,12 @@ import { CreateTenantPaymentRequest, TenantPayment, TenantPortalService } from '
             </div>
             <div class="text-right">
               <p class="text-xl font-bold text-slate-900">{{ item.amount | currency:'KES ':'symbol':'1.0-2' }}</p>
-              <span class="rounded-full bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-700">{{ item.status }}</span>
+              <span
+                class="rounded-full px-2 py-1 text-xs font-medium"
+                [ngClass]="item.status === 'COMPLETED' ? 'bg-emerald-50 text-emerald-700' : item.status === 'FAILED' ? 'bg-rose-50 text-rose-700' : 'bg-amber-50 text-amber-700'"
+              >
+                {{ item.status || 'PENDING' }}
+              </span>
             </div>
           </div>
           <div class="mt-3 text-sm text-slate-500">
@@ -219,7 +224,7 @@ export class TenantPaymentsComponent implements OnInit {
     }
 
     this.mpesaPollTimer = window.setInterval(() => {
-      this.service.getPayments(tenantId, 0, 20).subscribe({
+      this.service.getPayments(tenantId, 0, 100).subscribe({
         next: res => {
           const payments = res.data?.content ?? [];
           const match = payments.find((payment: TenantPayment) => {
@@ -350,13 +355,9 @@ export class TenantPaymentsComponent implements OnInit {
       return;
     }
 
-    this.service.getPayments(tenantId, 0, 10).subscribe({
+    this.service.getPayments(tenantId, 0, 100).subscribe({
       next: res => {
-        const visiblePayments = (res.data?.content ?? []).filter(payment => {
-          const status = (payment.status ?? '').toUpperCase();
-          return status !== 'PENDING' && status !== 'FAILED';
-        });
-        this.items.set(visiblePayments);
+        this.items.set(res.data?.content ?? []);
         this.loading.set(false);
       },
       error: () => {
