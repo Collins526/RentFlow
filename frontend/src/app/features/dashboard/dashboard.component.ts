@@ -170,6 +170,7 @@ interface MetricTile {
       <section *ngIf="!isPlatformAdmin()" class="flex flex-wrap items-center gap-3 mb-6">
         <a mat-flat-button color="primary" routerLink="/properties"><mat-icon>add_home</mat-icon> Add property</a>
         <a mat-stroked-button routerLink="/tenancies"><mat-icon>assignment_add</mat-icon> Create tenancy</a>
+        <a mat-stroked-button routerLink="/invoices"><mat-icon>receipt_long</mat-icon> Create invoice</a>
         <a mat-stroked-button routerLink="/tenants"><mat-icon>person_add</mat-icon> Add tenant</a>
       </section>
 

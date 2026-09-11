@@ -74,6 +74,12 @@ export const routes: Routes = [
         loadChildren: () => import('./features/tenancies/tenancies.routes').then(m => m.TENANCY_ROUTES)
       },
       {
+        path: 'invoices',
+        canActivate: [roleGuard([Role.OrganizationOwner, Role.PropertyManager])],
+        data: { breadcrumb: 'Rent invoices' },
+        loadComponent: () => import('./features/invoices/invoice-list.component').then(m => m.InvoiceListComponent)
+      },
+      {
         path: 'organization',
         canActivate: [roleGuard([Role.OrganizationOwner, Role.PlatformAdmin])],
         data: { breadcrumb: 'Organization' },

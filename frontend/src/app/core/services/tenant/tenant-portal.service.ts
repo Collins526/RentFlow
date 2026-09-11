@@ -12,8 +12,10 @@ export interface TenantInvoice {
   unitId?: string;
   amount: number;
   status: string;
+  periodStart?: string;
   periodEnd?: string;
   dueDate?: string;
+  notes?: string;
 }
 
 export interface TenantPayment {

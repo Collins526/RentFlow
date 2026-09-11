@@ -6,7 +6,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { CreateTenantPaymentRequest, TenantPayment, TenantPortalService } from '../../core/services/tenant/tenant-portal.service';
 
@@ -177,6 +177,7 @@ import { CreateTenantPaymentRequest, TenantPayment, TenantPortalService } from '
 export class TenantPaymentsComponent implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly service = inject(TenantPortalService);
+  private readonly route = inject(ActivatedRoute);
 
   items = signal<TenantPayment[]>([]);
   loading = signal(true);
@@ -194,6 +195,7 @@ export class TenantPaymentsComponent implements OnInit {
   method = 'MPESA';
   phoneNumber = '';
   reference = '';
+  invoiceId: string | null = null;
 
   togglePaymentsVisibility(): void {
     this.paymentsVisible.update(visible => !visible);
@@ -269,7 +271,7 @@ export class TenantPaymentsComponent implements OnInit {
 
   submitPayment(): void {
     const tenantId = this.auth.currentUser()?.tenantId;
-    const unitId = this.auth.currentUser()?.unitId;
+    const unitId = this.route.snapshot.queryParamMap.get('unitId') || this.auth.currentUser()?.unitId;
 
     if (!tenantId) {
       this.submitMessage.set('Your tenant profile is not linked to the system yet.');
@@ -290,6 +292,7 @@ export class TenantPaymentsComponent implements OnInit {
     const payload: CreateTenantPaymentRequest = {
       tenantId,
       unitId,
+      invoiceId: this.invoiceId,
       amount: numericAmount,
       method: this.method as CreateTenantPaymentRequest['method'],
       phoneNumber: this.phoneNumber?.trim() || null,
@@ -306,6 +309,7 @@ export class TenantPaymentsComponent implements OnInit {
           phoneNumber: this.phoneNumber.trim(),
           amount: numericAmount,
           tenantId,
+          invoiceId: this.invoiceId,
           unitId,
           reference: payload.reference ?? null,
           accountReference: this.paymentType() === 'rent' ? 'Rent payment' : 'Security deposit payment',
@@ -348,6 +352,14 @@ export class TenantPaymentsComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    const params = this.route.snapshot.queryParamMap;
+    this.invoiceId = params.get('invoiceId');
+    if (this.invoiceId) {
+      this.paymentType.set('rent');
+      this.amount = params.get('amount') ?? '';
+      this.reference = params.get('reference') ?? 'Rent payment';
+    }
+
     const tenantId = this.auth.currentUser()?.tenantId;
     if (!tenantId) {
       this.error.set('Your tenant profile is not linked to the system yet.');

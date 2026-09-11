@@ -63,6 +63,13 @@ export const NAV_SECTIONS: NavSection[] = [
         roles: PORTFOLIO_READ_ROLES,
         hideFromPlatformAdmin: true,
         matchPrefix: true
+      },
+      {
+        label: 'Rent invoices',
+        icon: 'receipt_long',
+        route: '/invoices',
+        roles: [Role.OrganizationOwner, Role.PropertyManager],
+        matchPrefix: true
       }
     ]
   },
