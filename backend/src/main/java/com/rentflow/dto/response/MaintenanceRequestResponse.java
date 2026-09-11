@@ -25,6 +25,10 @@ public class MaintenanceRequestResponse {
     private UUID tenancyId;
     private String title;
     private String description;
+    private String attachmentData;
+    private String attachmentName;
+    private String attachmentType;
+    private Long attachmentSize;
     private MaintenancePriority priority;
     private MaintenanceStatus status;
     private LocalDate requestedDate;

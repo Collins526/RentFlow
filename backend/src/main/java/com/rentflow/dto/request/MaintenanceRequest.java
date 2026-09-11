@@ -31,6 +31,11 @@ public class MaintenanceRequest {
 
     private String description;
 
+    private String attachmentData;
+    private String attachmentName;
+    private String attachmentType;
+    private Long attachmentSize;
+
     @NotNull(message = "Priority is required")
     private MaintenancePriority priority;
 

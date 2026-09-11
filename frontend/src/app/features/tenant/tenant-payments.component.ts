@@ -125,11 +125,31 @@ import { CreateTenantPaymentRequest, TenantPayment, TenantPortalService } from '
           </div>
         </div>
 
-        <div *ngIf="items().length === 0" class="rounded-2xl border border-dashed border-slate-300 bg-white p-6 text-slate-500">
+        <div class="flex items-center justify-between gap-3">
+          <div>
+            <p class="text-sm font-semibold uppercase tracking-wide text-indigo-700">Payment history</p>
+            <h2 class="mt-1 text-xl font-semibold text-slate-900">Payments made</h2>
+          </div>
+          <button
+            mat-stroked-button
+            type="button"
+            [attr.aria-label]="paymentsVisible() ? 'Hide payments' : 'Show payments'"
+            (click)="togglePaymentsVisibility()"
+          >
+            <mat-icon>{{ paymentsVisible() ? 'visibility_off' : 'visibility' }}</mat-icon>
+            {{ paymentsVisible() ? 'Hide payments' : 'Show payments' }}
+          </button>
+        </div>
+
+        <div *ngIf="!paymentsVisible()" class="rounded-2xl border border-slate-200 bg-white p-6 text-slate-500">
+          Payment details are hidden. Click “Show payments” to view your history.
+        </div>
+
+        <div *ngIf="paymentsVisible() && items().length === 0" class="rounded-2xl border border-dashed border-slate-300 bg-white p-6 text-slate-500">
           No payments have been recorded for your account yet.
         </div>
 
-        <div *ngFor="let item of items()" class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div *ngFor="let item of paymentsVisible() ? items() : []" class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
           <div class="flex items-center justify-between gap-3">
             <div>
               <p class="text-sm text-slate-500">Reference {{ item.reference || 'N/A' }}</p>
@@ -161,6 +181,7 @@ export class TenantPaymentsComponent implements OnInit {
   submitMessage = signal<string | null>(null);
   submitState = signal<'success' | 'error' | null>(null);
   isAwaitingMpesaConfirmation = signal(false);
+  paymentsVisible = signal(true);
 
   private mpesaPollTimer: any = null;
 
@@ -168,6 +189,10 @@ export class TenantPaymentsComponent implements OnInit {
   method = 'MPESA';
   phoneNumber = '';
   reference = '';
+
+  togglePaymentsVisibility(): void {
+    this.paymentsVisible.update(visible => !visible);
+  }
 
   selectPaymentType(type: 'rent' | 'security-deposit'): void {
     this.paymentType.set(type);
@@ -327,7 +352,11 @@ export class TenantPaymentsComponent implements OnInit {
 
     this.service.getPayments(tenantId, 0, 10).subscribe({
       next: res => {
-        this.items.set(res.data?.content ?? []);
+        const visiblePayments = (res.data?.content ?? []).filter(payment => {
+          const status = (payment.status ?? '').toUpperCase();
+          return status !== 'PENDING' && status !== 'FAILED';
+        });
+        this.items.set(visiblePayments);
         this.loading.set(false);
       },
       error: () => {

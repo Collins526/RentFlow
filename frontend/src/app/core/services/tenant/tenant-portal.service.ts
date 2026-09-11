@@ -34,9 +34,27 @@ export interface TenantMaintenanceRequest {
   unitId?: string;
   title: string;
   description?: string;
+  attachmentData?: string;
+  attachmentName?: string;
+  attachmentType?: string;
+  attachmentSize?: number;
   status: string;
   priority?: string;
   requestedDate?: string;
+}
+
+export interface CreateTenantMaintenanceRequest {
+  tenantId: string;
+  unitId?: string | null;
+  title: string;
+  description?: string | null;
+  attachmentData?: string | null;
+  attachmentName?: string | null;
+  attachmentType?: string | null;
+  attachmentSize?: number | null;
+  priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+  status: 'REQUESTED';
+  requestedDate: string;
 }
 
 export interface CreateTenantPaymentRequest {
@@ -92,6 +110,10 @@ export class TenantPortalService {
       .set('size', size.toString());
 
     return this.http.get<ApiResponse<Page<TenantMaintenanceRequest>>>(`${this.apiUrl}/maintenance`, { params });
+  }
+
+  createMaintenanceRequest(request: CreateTenantMaintenanceRequest): Observable<ApiResponse<TenantMaintenanceRequest>> {
+    return this.http.post<ApiResponse<TenantMaintenanceRequest>>(`${this.apiUrl}/maintenance`, request);
   }
 
   createPayment(request: CreateTenantPaymentRequest): Observable<ApiResponse<any>> {

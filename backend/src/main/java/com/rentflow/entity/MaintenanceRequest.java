@@ -44,6 +44,18 @@ public class MaintenanceRequest extends BaseEntity {
     @Column(length = 2000)
     private String description;
 
+    @Column(name = "attachment_data", columnDefinition = "TEXT")
+    private String attachmentData;
+
+    @Column(name = "attachment_name", length = 255)
+    private String attachmentName;
+
+    @Column(name = "attachment_type", length = 100)
+    private String attachmentType;
+
+    @Column(name = "attachment_size")
+    private Long attachmentSize;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 50)
     private MaintenancePriority priority;
