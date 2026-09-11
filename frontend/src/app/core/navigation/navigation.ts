@@ -70,6 +70,13 @@ export const NAV_SECTIONS: NavSection[] = [
         route: '/invoices',
         roles: [Role.OrganizationOwner, Role.PropertyManager],
         matchPrefix: true
+      },
+      {
+        label: 'Maintenance',
+        icon: 'build',
+        route: '/maintenance',
+        roles: [Role.OrganizationOwner, Role.PropertyManager],
+        matchPrefix: true
       }
     ]
   },

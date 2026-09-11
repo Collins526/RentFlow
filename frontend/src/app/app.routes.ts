@@ -80,6 +80,12 @@ export const routes: Routes = [
         loadComponent: () => import('./features/invoices/invoice-list.component').then(m => m.InvoiceListComponent)
       },
       {
+        path: 'maintenance',
+        canActivate: [roleGuard([Role.OrganizationOwner, Role.PropertyManager])],
+        data: { breadcrumb: 'Maintenance requests' },
+        loadComponent: () => import('./features/maintenance/maintenance-list.component').then(m => m.MaintenanceListComponent)
+      },
+      {
         path: 'organization',
         canActivate: [roleGuard([Role.OrganizationOwner, Role.PlatformAdmin])],
         data: { breadcrumb: 'Organization' },

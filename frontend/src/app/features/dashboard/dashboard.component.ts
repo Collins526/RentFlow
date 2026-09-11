@@ -171,6 +171,7 @@ interface MetricTile {
         <a mat-flat-button color="primary" routerLink="/properties"><mat-icon>add_home</mat-icon> Add property</a>
         <a mat-stroked-button routerLink="/tenancies"><mat-icon>assignment_add</mat-icon> Create tenancy</a>
         <a mat-stroked-button routerLink="/invoices"><mat-icon>receipt_long</mat-icon> Create invoice</a>
+        <a mat-stroked-button routerLink="/maintenance"><mat-icon>build</mat-icon> Maintenance</a>
         <a mat-stroked-button routerLink="/tenants"><mat-icon>person_add</mat-icon> Add tenant</a>
       </section>
 
