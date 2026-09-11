@@ -39,7 +39,7 @@ import { CreateTenantMaintenanceRequest, TenantMaintenanceRequest, TenantPortalS
         <div class="rounded-2xl border border-indigo-200 bg-indigo-50 p-5 shadow-sm">
           <div class="mb-4">
             <p class="text-sm font-semibold uppercase tracking-wide text-indigo-700">Report an issue</p>
-            <h2 class="mt-1 text-xl font-semibold text-slate-900">Submit a maintenance request</h2>
+            <h2 class="mt-1 text-xl font-semibold text-slate-900">{{ editingId() ? 'Edit maintenance request' : 'Submit a maintenance request' }}</h2>
             <p class="mt-1 text-sm text-slate-600">Tell your property manager what needs attention.</p>
           </div>
 
@@ -78,8 +78,9 @@ import { CreateTenantMaintenanceRequest, TenantMaintenanceRequest, TenantPortalS
 
           <div class="mt-4 flex justify-end">
             <button mat-flat-button color="primary" type="button" [disabled]="submitting()" (click)="submitRequest()">
-              {{ submitting() ? 'Submitting…' : 'Submit request' }}
+              {{ submitting() ? (editingId() ? 'Saving…' : 'Submitting…') : (editingId() ? 'Save changes' : 'Submit request') }}
             </button>
+            <button *ngIf="editingId()" mat-button type="button" (click)="cancelEdit()">Cancel edit</button>
           </div>
         </div>
 
@@ -110,6 +111,16 @@ import { CreateTenantMaintenanceRequest, TenantMaintenanceRequest, TenantPortalS
           <div class="mt-3 text-sm text-slate-500">
             Submitted {{ (item.requestedDate || item.id) | date:'mediumDate' }}
           </div>
+          <div *ngIf="item.status === 'REQUESTED'" class="mt-4 flex justify-end gap-2">
+            <button mat-stroked-button type="button" (click)="editRequest(item)">
+              <mat-icon>edit</mat-icon>
+              Edit
+            </button>
+            <button mat-stroked-button color="warn" type="button" [disabled]="cancellingId() === item.id" (click)="cancelRequest(item)">
+              <mat-icon>close</mat-icon>
+              {{ cancellingId() === item.id ? 'Cancelling…' : 'Cancel request' }}
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -124,6 +135,8 @@ export class TenantRequestsComponent implements OnInit {
   loading = signal(true);
   error = signal<string | null>(null);
   submitting = signal(false);
+  editingId = signal<string | null>(null);
+  cancellingId = signal<string | null>(null);
   submitMessage = signal<string | null>(null);
   submitSuccess = signal(false);
 
@@ -208,17 +221,18 @@ export class TenantRequestsComponent implements OnInit {
       requestedDate: new Date().toISOString().slice(0, 10)
     };
 
+    const requestOperation = this.editingId()
+      ? this.service.updateMaintenanceRequest(this.editingId()!, request)
+      : this.service.createMaintenanceRequest(request);
+
     this.submitting.set(true);
     this.submitMessage.set(null);
-    this.service.createMaintenanceRequest(request).subscribe({
+    requestOperation.subscribe({
       next: () => {
         this.submitting.set(false);
         this.submitSuccess.set(true);
-        this.submitMessage.set('Maintenance request submitted successfully.');
-        this.title = '';
-        this.description = '';
-        this.priority = 'MEDIUM';
-        this.clearAttachment();
+        this.submitMessage.set(this.editingId() ? 'Maintenance request updated successfully.' : 'Maintenance request submitted successfully.');
+        this.resetForm();
         this.loadRequests();
       },
       error: err => {
@@ -227,6 +241,52 @@ export class TenantRequestsComponent implements OnInit {
         this.submitMessage.set(err?.error?.message || 'Unable to submit the maintenance request right now.');
       }
     });
+  }
+
+  editRequest(request: TenantMaintenanceRequest): void {
+    this.editingId.set(request.id);
+    this.title = request.title;
+    this.description = request.description ?? '';
+    this.priority = (request.priority as CreateTenantMaintenanceRequest['priority']) || 'MEDIUM';
+    this.attachmentData = request.attachmentData ?? null;
+    this.attachmentName = request.attachmentName ?? null;
+    this.attachmentType = request.attachmentType ?? null;
+    this.attachmentSize = request.attachmentSize ?? null;
+    this.submitMessage.set(null);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  cancelEdit(): void {
+    this.editingId.set(null);
+    this.resetForm();
+    this.submitMessage.set(null);
+  }
+
+  cancelRequest(request: TenantMaintenanceRequest): void {
+    if (!window.confirm('Cancel this maintenance request?')) {
+      return;
+    }
+
+    this.cancellingId.set(request.id);
+    this.service.cancelMaintenanceRequest(request.id).subscribe({
+      next: () => {
+        this.cancellingId.set(null);
+        this.loadRequests();
+      },
+      error: err => {
+        this.cancellingId.set(null);
+        this.submitSuccess.set(false);
+        this.submitMessage.set(err?.error?.message || 'Unable to cancel the maintenance request right now.');
+      }
+    });
+  }
+
+  private resetForm(): void {
+    this.editingId.set(null);
+    this.title = '';
+    this.description = '';
+    this.priority = 'MEDIUM';
+    this.clearAttachment();
   }
 
   ngOnInit(): void {

@@ -119,6 +119,14 @@ export class TenantPortalService {
     return this.http.post<ApiResponse<TenantMaintenanceRequest>>(`${this.apiUrl}/maintenance`, request);
   }
 
+  updateMaintenanceRequest(requestId: string, request: CreateTenantMaintenanceRequest): Observable<ApiResponse<TenantMaintenanceRequest>> {
+    return this.http.put<ApiResponse<TenantMaintenanceRequest>>(`${this.apiUrl}/maintenance/${requestId}`, request);
+  }
+
+  cancelMaintenanceRequest(requestId: string): Observable<ApiResponse<void>> {
+    return this.http.post<ApiResponse<void>>(`${this.apiUrl}/maintenance/${requestId}/cancel`, {});
+  }
+
   createPayment(request: CreateTenantPaymentRequest): Observable<ApiResponse<any>> {
     return this.http.post<ApiResponse<any>>(`${this.apiUrl}/payments`, request);
   }

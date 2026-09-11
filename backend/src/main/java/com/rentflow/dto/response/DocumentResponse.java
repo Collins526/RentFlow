@@ -26,6 +26,8 @@ public class DocumentResponse {
     private String description;
     private String documentType;
     private String documentUrl;
+    private String cloudinaryPublicId;
+    private String cloudinaryResourceType;
     private String fileName;
     private String fileType;
     private Long fileSize;

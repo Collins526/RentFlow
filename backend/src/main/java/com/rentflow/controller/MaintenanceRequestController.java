@@ -35,6 +35,21 @@ public class MaintenanceRequestController {
         return new ResponseEntity<>(ApiResponse.success(response, "Maintenance request created"), HttpStatus.CREATED);
     }
 
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('TENANT')")
+    public ResponseEntity<ApiResponse<MaintenanceRequestResponse>> updateMaintenanceRequest(
+            @PathVariable UUID id, @Valid @RequestBody MaintenanceRequest request) {
+        MaintenanceRequestResponse response = maintenanceRequestService.updateMaintenanceRequest(id, request);
+        return ResponseEntity.ok(ApiResponse.success(response, "Maintenance request updated"));
+    }
+
+    @PostMapping("/{id}/cancel")
+    @PreAuthorize("hasRole('TENANT')")
+    public ResponseEntity<ApiResponse<Void>> cancelMaintenanceRequest(@PathVariable UUID id) {
+        maintenanceRequestService.cancelMaintenanceRequest(id);
+        return ResponseEntity.ok(ApiResponse.success(null, "Maintenance request cancelled"));
+    }
+
     @GetMapping
     @PreAuthorize(READ_ROLES)
     public ResponseEntity<ApiResponse<Page<MaintenanceRequestResponse>>> listMaintenanceRequests(

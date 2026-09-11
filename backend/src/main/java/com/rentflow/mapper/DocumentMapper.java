@@ -23,6 +23,8 @@ public class DocumentMapper {
                 .description(entity.getDescription())
                 .documentType(entity.getDocumentType())
                 .documentUrl(entity.getDocumentUrl())
+                .cloudinaryPublicId(entity.getCloudinaryPublicId())
+                .cloudinaryResourceType(entity.getCloudinaryResourceType())
                 .fileName(entity.getFileName())
                 .fileType(entity.getFileType())
                 .fileSize(entity.getFileSize())

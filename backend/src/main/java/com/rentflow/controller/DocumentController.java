@@ -9,9 +9,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.UUID;
 
@@ -33,6 +35,15 @@ public class DocumentController {
             @Valid @RequestBody DocumentRequest request) {
         DocumentResponse response = documentService.createDocument(request);
         return new ResponseEntity<>(ApiResponse.success(response, "Document created"), HttpStatus.CREATED);
+    }
+
+    @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize(MANAGE_ROLES)
+    public ResponseEntity<ApiResponse<DocumentResponse>> uploadDocument(
+            @Valid @ModelAttribute DocumentRequest request,
+            @RequestPart("file") MultipartFile file) {
+        DocumentResponse response = documentService.uploadDocument(request, file);
+        return new ResponseEntity<>(ApiResponse.success(response, "Document uploaded"), HttpStatus.CREATED);
     }
 
     @GetMapping

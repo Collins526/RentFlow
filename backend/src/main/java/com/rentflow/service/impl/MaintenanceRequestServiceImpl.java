@@ -77,6 +77,52 @@ public class MaintenanceRequestServiceImpl implements MaintenanceRequestService 
     }
 
     @Override
+    public MaintenanceRequestResponse updateMaintenanceRequest(UUID id, MaintenanceRequest request) {
+        com.rentflow.entity.MaintenanceRequest entity = getTenantRequestedRequest(id);
+        validateTenantRequest(request);
+
+        entity.setTitle(request.getTitle());
+        entity.setDescription(request.getDescription());
+        entity.setAttachmentData(request.getAttachmentData());
+        entity.setAttachmentName(request.getAttachmentName());
+        entity.setAttachmentType(request.getAttachmentType());
+        entity.setAttachmentSize(request.getAttachmentSize());
+        entity.setPriority(request.getPriority());
+
+        return maintenanceRequestMapper.toResponse(maintenanceRequestRepository.save(entity));
+    }
+
+    @Override
+    public void cancelMaintenanceRequest(UUID id) {
+        com.rentflow.entity.MaintenanceRequest entity = getTenantRequestedRequest(id);
+        entity.setStatus(MaintenanceStatus.CANCELLED);
+        maintenanceRequestRepository.save(entity);
+    }
+
+    private com.rentflow.entity.MaintenanceRequest getTenantRequestedRequest(UUID id) {
+        UUID organizationId = SecurityUtils.getCurrentUserOrganizationId();
+        com.rentflow.entity.MaintenanceRequest entity = maintenanceRequestRepository
+                .findByIdAndOrganizationIdAndDeletedAtIsNull(id, organizationId)
+                .orElseThrow(() -> new ResourceNotFoundException("Maintenance request not found"));
+
+        UUID currentTenantId = SecurityUtils.getCurrentUserTenantIdOrNull();
+        if (currentTenantId == null || !currentTenantId.equals(entity.getTenantId())) {
+            throw new UnauthorizedException("Tenant can only modify their own maintenance requests");
+        }
+        if (entity.getStatus() != MaintenanceStatus.REQUESTED) {
+            throw new UnauthorizedException("Only requested maintenance requests can be modified");
+        }
+        return entity;
+    }
+
+    private void validateTenantRequest(MaintenanceRequest request) {
+        UUID currentTenantId = SecurityUtils.getCurrentUserTenantIdOrNull();
+        if (currentTenantId == null || !currentTenantId.equals(request.getTenantId())) {
+            throw new UnauthorizedException("Tenant can only modify their own maintenance requests");
+        }
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public Page<MaintenanceRequestResponse> listMaintenanceRequests(UUID tenantId, UUID tenancyId, UUID unitId, String status, Pageable pageable) {
         UUID organizationId = SecurityUtils.getCurrentUserOrganizationId();

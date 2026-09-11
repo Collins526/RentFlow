@@ -10,11 +10,13 @@ import com.rentflow.repository.TenantRepository;
 import com.rentflow.repository.UnitRepository;
 import com.rentflow.security.SecurityUtils;
 import com.rentflow.service.DocumentService;
+import com.rentflow.service.CloudinaryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -28,6 +30,7 @@ public class DocumentServiceImpl implements DocumentService {
     private final TenantRepository tenantRepository;
     private final UnitRepository unitRepository;
     private final DocumentMapper documentMapper;
+    private final CloudinaryService cloudinaryService;
 
     @Override
     public DocumentResponse createDocument(DocumentRequest request) {
@@ -55,6 +58,40 @@ public class DocumentServiceImpl implements DocumentService {
                 .fileType(request.getFileType())
                 .fileSize(request.getFileSize())
                 .uploadedDate(request.getUploadedDate())
+                .build();
+
+        return documentMapper.toResponse(documentRepository.save(document));
+    }
+
+    @Override
+    public DocumentResponse uploadDocument(DocumentRequest request, MultipartFile file) {
+        UUID organizationId = SecurityUtils.getCurrentUserOrganizationId();
+
+        tenantRepository.findByIdAndOrganizationId(request.getTenantId(), organizationId)
+                .orElseThrow(() -> new ResourceNotFoundException("Tenant not found"));
+
+        if (request.getUnitId() != null) {
+            unitRepository.findByIdAndOrganizationId(request.getUnitId(), organizationId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Unit not found"));
+        }
+
+        CloudinaryService.UploadResult upload = cloudinaryService.upload(file, organizationId);
+        Document document = Document.builder()
+                .organizationId(organizationId)
+                .tenantId(request.getTenantId())
+                .unitId(request.getUnitId())
+                .tenancyId(request.getTenancyId())
+                .leaseId(request.getLeaseId())
+                .title(request.getTitle())
+                .description(request.getDescription())
+                .documentType(request.getDocumentType())
+                .documentUrl(upload.secureUrl())
+                .cloudinaryPublicId(upload.publicId())
+                .cloudinaryResourceType(upload.resourceType())
+                .fileName(file.getOriginalFilename())
+                .fileType(file.getContentType())
+                .fileSize(file.getSize())
+                .uploadedDate(request.getUploadedDate() == null ? java.time.LocalDate.now() : request.getUploadedDate())
                 .build();
 
         return documentMapper.toResponse(documentRepository.save(document));
@@ -97,6 +134,7 @@ public class DocumentServiceImpl implements DocumentService {
                 .orElseThrow(() -> new ResourceNotFoundException("Document not found"));
 
         document.setDeletedAt(Instant.now());
+        cloudinaryService.delete(document.getCloudinaryPublicId(), document.getCloudinaryResourceType());
         documentRepository.save(document);
     }
 }

@@ -49,6 +49,12 @@ public class Document extends BaseEntity {
     @Column(name = "document_url", length = 1000)
     private String documentUrl;
 
+    @Column(name = "cloudinary_public_id", length = 500)
+    private String cloudinaryPublicId;
+
+    @Column(name = "cloudinary_resource_type", length = 20)
+    private String cloudinaryResourceType;
+
     @Column(name = "file_name", length = 255)
     private String fileName;
 
