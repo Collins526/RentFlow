@@ -20,3 +20,6 @@ target/
 
 ### Environment files ###
 .env
+
+###AI RULES###
+AI_rules.md
