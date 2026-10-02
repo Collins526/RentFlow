@@ -26,9 +26,7 @@ import { Role } from '../core/auth/roles';
          aria-label="Main navigation">
 
       <div class="flex items-center gap-3 h-16 px-5 shrink-0 border-b border-white/5">
-        <div class="h-9 w-9 shrink-0 rounded-lg bg-indigo-500 grid place-items-center shadow-sm shadow-indigo-500/30">
-          <mat-icon class="!text-white !text-xl !h-5 !w-5">holiday_village</mat-icon>
-        </div>
+        <img src="/rentflow-mark.svg" alt="" class="h-9 w-9 shrink-0 rounded-lg" />
         <span *ngIf="!collapsed()" class="text-lg font-semibold text-white tracking-tight">RentFlow</span>
       </div>
 
