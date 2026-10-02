@@ -20,13 +20,13 @@ import { Role } from '../core/auth/roles';
   standalone: true,
   imports: [CommonModule, RouterLink, RouterLinkActive, MatIconModule, MatTooltipModule, MatRippleModule],
   template: `
-    <nav class="h-full flex flex-col bg-slate-900 text-slate-300"
+    <nav class="h-full flex flex-col bg-[#0b1220] text-slate-300 shadow-[inset_-1px_0_0_rgba(255,255,255,0.04)]"
          [class.w-64]="!collapsed()"
          [class.w-20]="collapsed()"
          aria-label="Main navigation">
 
       <div class="flex items-center gap-3 h-16 px-5 shrink-0 border-b border-white/5">
-        <div class="h-9 w-9 shrink-0 rounded-lg bg-indigo-500 grid place-items-center">
+        <div class="h-9 w-9 shrink-0 rounded-lg bg-indigo-500 grid place-items-center shadow-sm shadow-indigo-500/30">
           <mat-icon class="!text-white !text-xl !h-5 !w-5">holiday_village</mat-icon>
         </div>
         <span *ngIf="!collapsed()" class="text-lg font-semibold text-white tracking-tight">RentFlow</span>
@@ -43,7 +43,7 @@ import { Role } from '../core/auth/roles';
 
           <a *ngFor="let item of section.items"
              [routerLink]="item.route"
-             routerLinkActive="!bg-indigo-500/15 !text-white before:opacity-100"
+             routerLinkActive="!bg-indigo-500/15 !text-white ring-1 ring-inset ring-white/5 before:opacity-100"
              [routerLinkActiveOptions]="{ exact: !item.matchPrefix }"
              matRipple
              [matTooltip]="collapsed() ? item.label : ''"
