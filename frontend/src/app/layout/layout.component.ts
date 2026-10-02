@@ -21,7 +21,7 @@ const COLLAPSED_KEY = 'rf.sidebar.collapsed';
   standalone: true,
   imports: [CommonModule, RouterOutlet, SidebarComponent, TopbarComponent],
   template: `
-    <div class="h-screen flex overflow-hidden bg-[#edf1f5]">
+    <div class="h-screen flex overflow-hidden bg-transparent">
 
       <!-- Docked rail (desktop) -->
       <aside *ngIf="!isHandset()" class="shrink-0 transition-[width] duration-200 ease-out">

@@ -27,12 +27,12 @@ import { Role } from '../core/auth/roles';
     BreadcrumbsComponent
   ],
   template: `
-    <header class="h-16 shrink-0 bg-[#f7f9fb] border-b border-slate-200/80 flex items-center gap-3 px-4 sm:px-6">
+    <header class="h-16 shrink-0 bg-slate-900 border-b border-slate-700 flex items-center gap-3 px-4 sm:px-6">
       <button mat-icon-button
               (click)="toggleSidebar.emit()"
               [matTooltip]="sidebarCollapsed() ? 'Expand menu' : 'Collapse menu'"
               aria-label="Toggle navigation"
-              class="!rounded-lg !bg-white !border !border-slate-200">
+              class="!rounded-lg !bg-slate-800 !border !border-slate-700">
         <mat-icon>menu</mat-icon>
       </button>
 
