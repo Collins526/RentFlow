@@ -1,0 +1,635 @@
+<!--
+  Public marketing page. Sits outside the authenticated shell, so the header and
+  footer here are self-contained rather than reused from the layout.
+-->
+<div class="bg-white text-slate-900 antialiased">
+
+  <!-- ============================ Header ============================ -->
+  <header
+    class="fixed inset-x-0 top-0 z-50 transition-all duration-300"
+    [class.bg-white/95]="scrolled()"
+    [class.backdrop-blur]="scrolled()"
+    [class.shadow-sm]="scrolled()"
+    [class.border-b]="scrolled()"
+    [class.border-slate-200/70]="scrolled()">
+
+    <div class="mx-auto flex h-18 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+      <a routerLink="/" class="flex items-center gap-2.5" (click)="closeMenu()" aria-label="RentFlow home">
+        <span class="grid h-9 w-9 place-items-center rounded-lg bg-indigo-600 text-white shadow-sm">
+          <mat-icon class="!h-5 !w-5 !text-xl">holiday_village</mat-icon>
+        </span>
+        <span class="text-lg font-semibold tracking-tight">RentFlow</span>
+      </a>
+
+      <!-- Desktop nav -->
+      <nav class="hidden items-center gap-1 lg:flex" aria-label="Sections">
+        <button *ngFor="let link of navLinks"
+                type="button"
+                class="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900"
+                (click)="scrollTo(link.target, $event)">
+          {{ link.label }}
+        </button>
+      </nav>
+
+      <div class="hidden items-center gap-3 lg:flex">
+        <a mat-stroked-button routerLink="/login" class="!rounded-lg">Sign in</a>
+        <a mat-flat-button color="primary" routerLink="/register" class="!rounded-lg !px-5">
+          Get started
+        </a>
+      </div>
+
+      <!-- Mobile trigger -->
+      <button type="button"
+              class="grid h-10 w-10 place-items-center rounded-lg text-slate-700 hover:bg-slate-100 lg:hidden"
+              (click)="toggleMenu()"
+              [attr.aria-expanded]="menuOpen()"
+              aria-controls="landing-mobile-nav"
+              aria-label="Toggle navigation">
+        <mat-icon>{{ menuOpen() ? 'close' : 'menu' }}</mat-icon>
+      </button>
+    </div>
+
+    <!-- Mobile drawer -->
+    <div *ngIf="menuOpen()"
+         id="landing-mobile-nav"
+         class="border-t border-slate-200 bg-white px-4 py-4 lg:hidden">
+      <nav class="flex flex-col" aria-label="Sections">
+        <button *ngFor="let link of navLinks"
+                type="button"
+                class="rounded-lg px-3 py-3 text-left text-sm font-medium text-slate-700 hover:bg-slate-100"
+                (click)="scrollTo(link.target, $event)">
+          {{ link.label }}
+        </button>
+      </nav>
+      <div class="mt-4 flex flex-col gap-2 border-t border-slate-100 pt-4">
+        <a mat-stroked-button routerLink="/login" class="!w-full !rounded-lg" (click)="closeMenu()">Sign in</a>
+        <a mat-flat-button color="primary" routerLink="/register" class="!w-full !rounded-lg" (click)="closeMenu()">
+          Get started
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============================= Hero ============================= -->
+  <section class="relative overflow-hidden pt-32 pb-20 sm:pt-40 sm:pb-24">
+    <!-- Decorative wash, hidden from assistive tech. -->
+    <div class="pointer-events-none absolute inset-0 -z-10" aria-hidden="true">
+      <div class="absolute inset-x-0 top-0 h-125 bg-linear-to-b from-indigo-50/70 to-transparent"></div>
+      <div class="absolute -top-32 left-1/2 h-96 w-96 -translate-x-1/2 rounded-full bg-indigo-200/30 blur-3xl"></div>
+    </div>
+
+    <div class="mx-auto grid max-w-7xl items-center gap-14 px-4 sm:px-6 lg:grid-cols-2 lg:gap-10 lg:px-8">
+      <div>
+        <span class="inline-flex items-center gap-2 rounded-full border border-indigo-100 bg-indigo-50 px-3 py-1 text-xs font-medium text-indigo-700">
+          <span class="h-1.5 w-1.5 rounded-full bg-indigo-500"></span>
+          M-Pesa payments built in
+        </span>
+
+        <h1 class="mt-6 text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl lg:text-6xl">
+          Rent collection and property management,
+          <span class="text-indigo-600">in one system</span>
+        </h1>
+
+        <p class="mt-6 max-w-xl text-lg leading-relaxed text-slate-600">
+          RentFlow gives landlords and property managers a single place to run their
+          portfolio: units, tenants, leases, rent invoices, maintenance and M-Pesa
+          payments. Your tenants pay from their phone. Your books stay reconciled.
+        </p>
+
+        <div class="mt-8 flex flex-col gap-3 sm:flex-row">
+          <a mat-flat-button color="primary" routerLink="/register" class="!rounded-xl !px-7 !py-6 !text-base">
+            Start free trial
+          </a>
+          <button type="button"
+                  mat-stroked-button
+                  class="!rounded-xl !px-7 !py-6 !text-base"
+                  (click)="scrollTo('modules', $event)">
+            See the modules
+          </button>
+        </div>
+
+        <p class="mt-5 text-sm text-slate-500">
+          No card required. Set up your first property in under ten minutes.
+        </p>
+
+        <dl class="mt-10 grid max-w-lg grid-cols-3 gap-6 border-t border-slate-200 pt-8">
+          <div>
+            <dt class="text-sm text-slate-500">Collection method</dt>
+            <dd class="mt-1 text-lg font-semibold text-slate-900">M-Pesa STK</dd>
+          </div>
+          <div>
+            <dt class="text-sm text-slate-500">Reconciliation</dt>
+            <dd class="mt-1 text-lg font-semibold text-slate-900">Automatic</dd>
+          </div>
+          <div>
+            <dt class="text-sm text-slate-500">Setup time</dt>
+            <dd class="mt-1 text-lg font-semibold text-slate-900">Minutes</dd>
+          </div>
+        </dl>
+      </div>
+
+      <!-- Product preview: a static illustration of the dashboard, not a live embed. -->
+      <div class="relative">
+        <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl shadow-slate-900/10">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+            <div>
+              <p class="text-sm font-semibold text-slate-900">Portfolio overview</p>
+              <p class="text-xs text-slate-500">Greenwood Apartments</p>
+            </div>
+            <span class="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">Live</span>
+          </div>
+
+          <div class="mt-5 grid grid-cols-3 gap-3">
+            <div class="rounded-xl bg-slate-50 p-3">
+              <p class="text-xs text-slate-500">Occupancy</p>
+              <p class="mt-1 text-xl font-bold text-slate-900">92%</p>
+            </div>
+            <div class="rounded-xl bg-slate-50 p-3">
+              <p class="text-xs text-slate-500">Collected</p>
+              <p class="mt-1 text-xl font-bold text-emerald-600">KES 1.4M</p>
+            </div>
+            <div class="rounded-xl bg-slate-50 p-3">
+              <p class="text-xs text-slate-500">Outstanding</p>
+              <p class="mt-1 text-xl font-bold text-amber-600">KES 86K</p>
+            </div>
+          </div>
+
+          <div class="mt-5 rounded-xl border border-slate-100 p-4">
+            <p class="text-sm font-medium text-slate-900">Recent payments</p>
+            <ul class="mt-3 space-y-3">
+              <li class="flex items-center justify-between text-sm">
+                <span class="flex items-center gap-2 text-slate-600">
+                  <span class="grid h-7 w-7 place-items-center rounded-full bg-indigo-100 text-xs font-semibold text-indigo-700">AM</span>
+                  Achieng M.
+                </span>
+                <span class="flex items-center gap-1.5 font-medium text-emerald-600">
+                  <mat-icon class="!h-4 !w-4 !text-base">check_circle</mat-icon> KES 45,000
+                </span>
+              </li>
+              <li class="flex items-center justify-between text-sm">
+                <span class="flex items-center gap-2 text-slate-600">
+                  <span class="grid h-7 w-7 place-items-center rounded-full bg-violet-100 text-xs font-semibold text-violet-700">BN</span>
+                  Brian N.
+                </span>
+                <span class="flex items-center gap-1.5 font-medium text-emerald-600">
+                  <mat-icon class="!h-4 !w-4 !text-base">check_circle</mat-icon> KES 32,500
+                </span>
+              </li>
+              <li class="flex items-center justify-between text-sm">
+                <span class="flex items-center gap-2 text-slate-600">
+                  <span class="grid h-7 w-7 place-items-center rounded-full bg-amber-100 text-xs font-semibold text-amber-700">CO</span>
+                  Carol O.
+                </span>
+                <span class="flex items-center gap-1.5 font-medium text-amber-600">
+                  <mat-icon class="!h-4 !w-4 !text-base">schedule</mat-icon> Pending
+                </span>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Notification card, offset to suggest depth. -->
+        <div class="absolute -bottom-8 -left-4 hidden w-64 rounded-xl border border-slate-200 bg-white p-4 shadow-xl shadow-slate-900/10 sm:block">
+          <p class="flex items-center gap-2 text-sm font-medium text-slate-900">
+            <mat-icon class="!h-4 !w-4 !text-base text-indigo-600">receipt_long</mat-icon>
+            Invoice paid
+          </p>
+          <p class="mt-1.5 text-xs leading-relaxed text-slate-500">
+            Unit B4 settled for October. Ledger and receipt updated automatically.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ Features =========================== -->
+  <section id="features" class="scroll-mt-20 border-t border-slate-100 bg-slate-50/70 py-20 sm:py-24">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div class="mx-auto max-w-2xl text-center">
+        <p class="text-sm font-semibold uppercase tracking-wider text-indigo-600">Features</p>
+        <h2 class="mt-3 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+          Everything a rental portfolio needs
+        </h2>
+        <p class="mt-4 text-lg text-slate-600">
+          Each module is built around the same records, so a payment made in the portal
+          is the same payment your accountant sees on the dashboard.
+        </p>
+      </div>
+
+      <div class="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <article *ngFor="let feature of features"
+                 class="rounded-2xl border border-slate-200 bg-white p-6 transition-shadow hover:shadow-lg hover:shadow-slate-900/5">
+          <span class="grid h-11 w-11 place-items-center rounded-xl" [ngClass]="feature.tone">
+            <mat-icon class="!h-5 !w-5 !text-xl">{{ feature.icon }}</mat-icon>
+          </span>
+          <h3 class="mt-4 text-base font-semibold text-slate-900">{{ feature.title }}</h3>
+          <p class="mt-2 text-sm leading-relaxed text-slate-600">{{ feature.body }}</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================= How it works ========================== -->
+  <section id="how-it-works" class="scroll-mt-20 py-20 sm:py-24">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div class="mx-auto max-w-2xl text-center">
+        <p class="text-sm font-semibold uppercase tracking-wider text-indigo-600">How it works</p>
+        <h2 class="mt-3 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+          Live in three steps
+        </h2>
+        <p class="mt-4 text-lg text-slate-600">
+          No migration project, no data team. Register, load your units, start billing.
+        </p>
+      </div>
+
+      <ol class="mt-14 grid gap-8 lg:grid-cols-3">
+        <li *ngFor="let step of steps; let i = index" class="relative">
+          <div class="flex items-center gap-3">
+            <span class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-indigo-600 text-white">
+              <mat-icon class="!h-5 !w-5 !text-xl">{{ step.icon }}</mat-icon>
+            </span>
+            <span class="text-sm font-semibold uppercase tracking-wider text-slate-400">Step {{ i + 1 }}</span>
+          </div>
+          <h3 class="mt-4 text-lg font-semibold text-slate-900">{{ step.title }}</h3>
+          <p class="mt-2 text-sm leading-relaxed text-slate-600">{{ step.body }}</p>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ============================ Modules ============================ -->
+  <section id="modules" class="scroll-mt-20 border-t border-slate-100 bg-slate-50/70 py-20 sm:py-24">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div class="mx-auto max-w-2xl text-center">
+        <p class="text-sm font-semibold uppercase tracking-wider text-indigo-600">Modules</p>
+        <h2 class="mt-3 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+          A full rental lifecycle, not a ledger bolted on
+        </h2>
+        <p class="mt-4 text-lg text-slate-600">
+          From the first property record to the final deposit refund, every step is a
+          module in the same system.
+        </p>
+      </div>
+
+      <div class="mt-14 grid gap-6 lg:grid-cols-2">
+        <article class="rounded-2xl border border-slate-200 bg-white p-7">
+          <mat-icon class="!h-7 !w-7 !text-2xl text-indigo-600">account_tree</mat-icon>
+          <h3 class="mt-4 text-lg font-semibold text-slate-900">Portfolio</h3>
+          <p class="mt-2 text-sm leading-relaxed text-slate-600">
+            Properties contain blocks, blocks contain units, and each unit carries its own
+            rent and deposit. Occupancy status updates as tenancies start and end, so your
+            dashboard is never a guess.
+          </p>
+          <ul class="mt-4 space-y-2">
+            <li *ngFor="let point of ['Properties, blocks and units', 'Bulk unit creation', 'Live occupancy tracking']"
+                class="flex items-start gap-2 text-sm text-slate-600">
+              <mat-icon class="!h-4 !w-4 !text-base mt-0.5 text-emerald-500">check</mat-icon>{{ point }}
+            </li>
+          </ul>
+        </article>
+
+        <article class="rounded-2xl border border-slate-200 bg-white p-7">
+          <mat-icon class="!h-7 !w-7 !text-2xl text-sky-600">groups</mat-icon>
+          <h3 class="mt-4 text-lg font-semibold text-slate-900">Leasing</h3>
+          <p class="mt-2 text-sm leading-relaxed text-slate-600">
+            Individual and corporate tenants, tenancy start and end dates, lease terms and
+            move-in and move-out inspections. One active tenancy per unit is enforced at
+            the database level.
+          </p>
+          <ul class="mt-4 space-y-2">
+            <li *ngFor="let point of ['Tenant and lease records', 'Move-in/out inspections', 'Deposit tracking and refunds']"
+                class="flex items-start gap-2 text-sm text-slate-600">
+              <mat-icon class="!h-4 !w-4 !text-base mt-0.5 text-emerald-500">check</mat-icon>{{ point }}
+            </li>
+          </ul>
+        </article>
+
+        <article class="rounded-2xl border border-slate-200 bg-white p-7">
+          <mat-icon class="!h-7 !w-7 !text-2xl text-emerald-600">account_balance_wallet</mat-icon>
+          <h3 class="mt-4 text-lg font-semibold text-slate-900">Rent billing</h3>
+          <p class="mt-2 text-sm leading-relaxed text-slate-600">
+            Monthly invoices generated from active tenancies, payments reconciled against a
+            rent ledger, and advance payments allocated against future bills. Your
+            contracted rent is always comparable to what you actually collected.
+          </p>
+          <ul class="mt-4 space-y-2">
+            <li *ngFor="let point of ['Invoices issued in bulk', 'Rent ledger and statements', 'Advance payment allocation']"
+                class="flex items-start gap-2 text-sm text-slate-600">
+              <mat-icon class="!h-4 !w-4 !text-base mt-0.5 text-emerald-500">check</mat-icon>{{ point }}
+            </li>
+          </ul>
+        </article>
+
+        <article class="rounded-2xl border border-slate-200 bg-white p-7">
+          <mat-icon class="!h-7 !w-7 !text-2xl text-amber-600">handyman</mat-icon>
+          <h3 class="mt-4 text-lg font-semibold text-slate-900">Operations</h3>
+          <p class="mt-2 text-sm leading-relaxed text-slate-600">
+            Maintenance requests with attachments, a document vault for leases and receipts,
+            and notifications so nothing sits unnoticed. Audit fields on every record mean
+            you can always answer who changed what.
+          </p>
+          <ul class="mt-4 space-y-2">
+            <li *ngFor="let point of ['Maintenance requests and photos', 'Document vault', 'Full audit trail']"
+                class="flex items-start gap-2 text-sm text-slate-600">
+              <mat-icon class="!h-4 !w-4 !text-base mt-0.5 text-emerald-500">check</mat-icon>{{ point }}
+            </li>
+          </ul>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================== For tenants ========================== -->
+  <section id="tenants" class="scroll-mt-20 py-20 sm:py-24">
+    <div class="mx-auto grid max-w-7xl items-center gap-12 px-4 sm:px-6 lg:grid-cols-2 lg:px-8">
+      <div>
+        <p class="text-sm font-semibold uppercase tracking-wider text-indigo-600">For tenants</p>
+        <h2 class="mt-3 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+          Your tenants get a portal, not a phone call
+        </h2>
+        <p class="mt-4 text-lg leading-relaxed text-slate-600">
+          Every tenant gets credentials when their tenancy is created. From there they can
+          see exactly what they owe, pay it, and reach you when something breaks.
+        </p>
+
+        <ul class="mt-8 space-y-4">
+          <li *ngFor="let point of [
+                            { icon: 'visibility', text: 'See their balance, invoices and payment history' },
+                            { icon: 'phone_android', text: 'Pay rent by M-Pesa from any phone' },
+                            { icon: 'download', text: 'Download receipts and statements' },
+                            { icon: 'build_circle', text: 'Raise a maintenance request with photos' }
+                          ]"
+              class="flex items-start gap-3">
+            <span class="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-indigo-50 text-indigo-600">
+              <mat-icon class="!h-4 !w-4 !text-base">{{ point.icon }}</mat-icon>
+            </span>
+            <span class="pt-1.5 text-sm text-slate-700">{{ point.text }}</span>
+          </li>
+        </ul>
+
+        <p class="mt-8 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
+          Fewer messages, fewer missed payments. Tenants self-serve the questions they
+          used to send you by message.
+        </p>
+      </div>
+
+      <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-xl shadow-slate-900/5">
+        <p class="text-sm font-semibold text-slate-900">October rent</p>
+        <p class="mt-1 text-3xl font-bold text-slate-900">KES 45,000</p>
+        <p class="mt-1 text-sm text-slate-500">Due 5 October</p>
+
+        <button type="button" class="mt-5 w-full !rounded-xl !py-6" mat-flat-button color="primary">
+          <mat-icon class="!h-5 !w-5 !text-xl">phone_android</mat-icon>
+          Pay with M-Pesa
+        </button>
+
+        <div class="mt-6 space-y-3 border-t border-slate-100 pt-5">
+          <div class="flex items-center justify-between text-sm">
+            <span class="text-slate-600">September rent</span>
+            <span class="font-medium text-emerald-600">Paid 3 Sep</span>
+          </div>
+          <div class="flex items-center justify-between text-sm">
+            <span class="text-slate-600">August rent</span>
+            <span class="font-medium text-emerald-600">Paid 4 Aug</span>
+          </div>
+          <div class="flex items-center justify-between text-sm">
+            <span class="text-slate-600">Water bill</span>
+            <span class="font-medium text-emerald-600">Paid 28 Aug</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================== Security =========================== -->
+  <section class="border-t border-slate-100 bg-slate-900 py-20 sm:py-24">
+    <div class="mx-auto grid max-w-7xl gap-12 px-4 sm:px-6 lg:grid-cols-2 lg:px-8">
+      <div>
+        <span class="grid h-11 w-11 place-items-center rounded-xl bg-white/10 text-white">
+          <mat-icon class="!h-5 !w-5 !text-xl">verified_user</mat-icon>
+        </span>
+        <h2 class="mt-5 text-3xl font-bold tracking-tight text-white sm:text-4xl">
+          Your tenants' data stays yours
+        </h2>
+        <p class="mt-4 text-lg leading-relaxed text-slate-300">
+          RentFlow is multi-tenant by design. Every query is scoped to the organization that
+          owns it, so one company can never read another's portfolio.
+        </p>
+      </div>
+
+      <ul class="space-y-4">
+        <li *ngFor="let point of securityPoints"
+            class="flex items-start gap-3 rounded-xl bg-white/5 p-4">
+          <mat-icon class="!h-5 !w-5 !text-xl mt-0.5 text-emerald-400">check_circle</mat-icon>
+          <span class="text-sm text-slate-200">{{ point }}</span>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ============================ Pricing =========================== -->
+  <section id="pricing" class="scroll-mt-20 py-20 sm:py-24">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div class="mx-auto max-w-2xl text-center">
+        <p class="text-sm font-semibold uppercase tracking-wider text-indigo-600">Pricing</p>
+        <h2 class="mt-3 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+          Priced per portfolio, not per transaction
+        </h2>
+        <p class="mt-4 text-lg text-slate-600">
+          No per-payment fee. Every plan includes M-Pesa collection and the tenant portal.
+        </p>
+      </div>
+
+      <div class="mt-14 grid gap-6 lg:grid-cols-3">
+        <article *ngFor="let plan of plans"
+                 class="relative flex flex-col rounded-2xl border bg-white p-7"
+                 [class.border-indigo-500]="plan.featured"
+                 [class.shadow-xl]="plan.featured"
+                 [class.shadow-indigo-500/10]="plan.featured"
+                 [class.border-slate-200]="!plan.featured">
+
+          <span *ngIf="plan.featured"
+                class="absolute -top-3 left-7 rounded-full bg-indigo-600 px-3 py-1 text-xs font-semibold text-white">
+            Most popular
+          </span>
+
+          <h3 class="text-lg font-semibold text-slate-900">{{ plan.name }}</h3>
+          <p class="mt-1 text-sm text-slate-500">{{ plan.blurb }}</p>
+
+          <p class="mt-6 flex items-baseline gap-1.5">
+            <span *ngIf="plan.price !== null" class="text-sm font-medium text-slate-500">KES</span>
+            <span class="text-4xl font-bold tracking-tight text-slate-900">
+              <ng-container *ngIf="plan.price !== null; else customPrice">{{ plan.price | number }}</ng-container>
+              <ng-template #customPrice>{{ plan.priceLabel }}</ng-template>
+            </span>
+            <span *ngIf="plan.cadence" class="text-sm text-slate-500">{{ plan.cadence }}</span>
+          </p>
+
+          <!-- The two buttons differ only in fill, so the featured plan gets the
+               filled treatment and the rest an outlined one. -->
+          <a *ngIf="plan.featured"
+             routerLink="/register"
+             mat-flat-button
+             color="primary"
+             class="mt-6 !w-full !rounded-xl !py-6">
+            {{ plan.cta }}
+          </a>
+          <a *ngIf="!plan.featured"
+             routerLink="/register"
+             mat-stroked-button
+             class="mt-6 !w-full !rounded-xl !py-6">
+            {{ plan.cta }}
+          </a>
+
+          <ul class="mt-7 space-y-3 border-t border-slate-100 pt-6">
+            <li *ngFor="let item of plan.features" class="flex items-start gap-2.5 text-sm text-slate-600">
+              <mat-icon class="!h-4 !w-4 !text-base mt-0.5 text-emerald-500">check</mat-icon>
+              {{ item }}
+            </li>
+          </ul>
+        </article>
+      </div>
+
+      <p class="mt-8 text-center text-sm text-slate-500">
+        Prices in Kenyan shillings, excluding statutory taxes. Change or cancel your plan at any time.
+      </p>
+    </div>
+  </section>
+
+  <!-- ========================= Testimonials ========================= -->
+  <section class="border-t border-slate-100 bg-slate-50/70 py-20 sm:py-24">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div class="mx-auto max-w-2xl text-center">
+        <p class="text-sm font-semibold uppercase tracking-wider text-indigo-600">Testimonials</p>
+        <h2 class="mt-3 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+          Landlords and managers on daily use
+        </h2>
+      </div>
+
+      <div class="mt-14 grid gap-6 lg:grid-cols-3">
+        <figure *ngFor="let item of testimonials"
+                class="flex flex-col rounded-2xl border border-slate-200 bg-white p-6">
+          <div class="flex gap-0.5 text-amber-400" aria-label="Five out of five">
+            <mat-icon *ngFor="let star of [1, 2, 3, 4, 5]" class="!h-4 !w-4 !text-base">star</mat-icon>
+          </div>
+          <blockquote class="mt-4 flex-1 text-sm leading-relaxed text-slate-700">
+            &ldquo;{{ item.quote }}&rdquo;
+          </blockquote>
+          <figcaption class="mt-5 flex items-center gap-3 border-t border-slate-100 pt-5">
+            <span class="grid h-10 w-10 shrink-0 place-items-center rounded-full text-sm font-semibold"
+                  [ngClass]="item.tone">{{ item.initials }}</span>
+            <span>
+              <span class="block text-sm font-medium text-slate-900">{{ item.name }}</span>
+              <span class="block text-xs text-slate-500">{{ item.role }}</span>
+            </span>
+          </figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================== FAQ ============================= -->
+  <section id="faq" class="scroll-mt-20 py-20 sm:py-24">
+    <div class="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+      <div class="text-center">
+        <p class="text-sm font-semibold uppercase tracking-wider text-indigo-600">FAQ</p>
+        <h2 class="mt-3 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+          Questions we get asked
+        </h2>
+      </div>
+
+      <div class="mt-12 divide-y divide-slate-200 overflow-hidden rounded-2xl border border-slate-200 bg-white">
+        <div *ngFor="let item of faqs; let i = index">
+          <h3>
+            <button type="button"
+                    class="flex w-full items-center justify-between gap-4 px-5 py-5 text-left transition-colors hover:bg-slate-50"
+                    (click)="toggleFaq(i)"
+                    [attr.aria-expanded]="isFaqOpen(i)"
+                    [attr.aria-controls]="'faq-panel-' + i">
+              <span class="text-sm font-medium text-slate-900">{{ item.question }}</span>
+              <mat-icon class="!h-5 !w-5 !text-xl shrink-0 text-slate-400 transition-transform duration-200"
+                        [class.rotate-180]="isFaqOpen(i)">expand_more</mat-icon>
+            </button>
+          </h3>
+          <div *ngIf="isFaqOpen(i)"
+               [id]="'faq-panel-' + i"
+               class="grid grid-rows-[1fr]"
+               role="region">
+            <p class="px-5 pb-5 text-sm leading-relaxed text-slate-600">{{ item.answer }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================== Final CTA ============================ -->
+  <section class="px-4 pb-20 sm:px-6 sm:pb-24 lg:px-8">
+    <div class="mx-auto max-w-7xl">
+      <div class="overflow-hidden rounded-3xl bg-indigo-600 px-6 py-14 text-center sm:px-14 sm:py-20">
+        <h2 class="mx-auto max-w-2xl text-3xl font-bold tracking-tight text-white sm:text-4xl">
+          Stop chasing rent. Start collecting it.
+        </h2>
+        <p class="mx-auto mt-4 max-w-xl text-lg text-indigo-100">
+          Set up your portfolio today and have your first invoice out before the end of the week.
+        </p>
+        <div class="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+          <a routerLink="/register"
+             class="!rounded-xl !bg-white !px-8 !py-6 !text-base !text-indigo-700 hover:!bg-indigo-50"
+             mat-flat-button>
+            Create your account
+          </a>
+          <a routerLink="/login"
+             class="!rounded-xl !border-white/40 !px-8 !py-6 !text-base !text-white hover:!bg-white/10"
+             mat-stroked-button>
+            Sign in
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ Footer ============================ -->
+  <footer class="border-t border-slate-200 bg-slate-50">
+    <div class="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
+      <div class="grid gap-10 md:grid-cols-4">
+        <div class="md:col-span-2">
+          <div class="flex items-center gap-2.5">
+            <span class="grid h-9 w-9 place-items-center rounded-lg bg-indigo-600 text-white">
+              <mat-icon class="!h-5 !w-5 !text-xl">holiday_village</mat-icon>
+            </span>
+            <span class="text-lg font-semibold tracking-tight text-slate-900">RentFlow</span>
+          </div>
+          <p class="mt-4 max-w-sm text-sm leading-relaxed text-slate-600">
+            Rent payment and property management for landlords, managers and tenants.
+            Built for Kenyan rental portfolios.
+          </p>
+        </div>
+
+        <div>
+          <h3 class="text-sm font-semibold text-slate-900">Product</h3>
+          <ul class="mt-4 space-y-2.5">
+            <li *ngFor="let link of navLinks">
+              <button type="button"
+                      class="text-sm text-slate-600 transition-colors hover:text-indigo-600"
+                      (click)="scrollTo(link.target, $event)">{{ link.label }}</button>
+            </li>
+          </ul>
+        </div>
+
+        <div>
+          <h3 class="text-sm font-semibold text-slate-900">Account</h3>
+          <ul class="mt-4 space-y-2.5">
+            <li><a routerLink="/register" class="text-sm text-slate-600 transition-colors hover:text-indigo-600">Register organization</a></li>
+            <li><a routerLink="/login" class="text-sm text-slate-600 transition-colors hover:text-indigo-600">Sign in</a></li>
+            <li><a routerLink="/tenant" class="text-sm text-slate-600 transition-colors hover:text-indigo-600">Tenant portal</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="mt-12 flex flex-col items-center justify-between gap-4 border-t border-slate-200 pt-6 sm:flex-row">
+        <p class="text-sm text-slate-500">&copy; {{ year }} RentFlow. All rights reserved.</p>
+        <p class="text-sm text-slate-500">Payments processed by Safaricom M-Pesa.</p>
+      </div>
+    </div>
+  </footer>
+</div>

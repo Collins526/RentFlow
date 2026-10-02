@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { authGuard, guestGuard } from './core/guards/auth.guard';
+import { authGuard, guestGuard, landingRedirectGuard } from './core/guards/auth.guard';
 import { roleGuard } from './core/guards/role.guard';
 import { PORTFOLIO_READ_ROLES, Role } from './core/auth/roles';
 
@@ -11,6 +11,16 @@ import { PORTFOLIO_READ_ROLES, Role } from './core/auth/roles';
  * They are a usability layer over the real check, not a substitute for it.
  */
 export const routes: Routes = [
+  {
+    // Public marketing page. Declared first so it wins on the empty path, and
+    // it sends an already-signed-in visitor straight to their workspace rather
+    // than making them click through a landing page.
+    path: '',
+    // `full` is what lets the shell route below still own every child path.
+    pathMatch: 'full',
+    canActivate: [landingRedirectGuard],
+    loadComponent: () => import('./features/landing/landing.component').then(m => m.LandingComponent)
+  },
   {
     path: 'login',
     canActivate: [guestGuard],

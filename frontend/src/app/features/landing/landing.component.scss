@@ -1,0 +1,28 @@
+/*
+ * Component-scoped styles. Everything structural is Tailwind in the template;
+ * this only covers behaviour that has no utility class: smooth anchor scrolling
+ * and keeping the Material icon baseline aligned inside the flex rows.
+ */
+
+:host {
+  display: block;
+}
+
+:host ::ng-deep mat-icon {
+  /* Icons are sized with Tailwind's `!h-* !w-*` overrides, but without this the
+   * ligature line box adds a few pixels of height to tight flex rows. */
+  line-height: 1;
+}
+
+/* Sticky header offsets anchor targets so headings clear the 4.5rem bar. */
+[id] {
+  scroll-margin-top: 4.5rem;
+}
+
+/* Respect a reduced-motion preference rather than animating the page scroll. */
+@media (prefers-reduced-motion: reduce) {
+  :host ::ng-deep * {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
