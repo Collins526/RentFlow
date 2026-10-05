@@ -38,6 +38,7 @@ describe('TenantPortalComponent', () => {
             ] } }),
             getMyActiveTenancy: () => of({ success: true, message: '', errors: [], data: {
               id: 'tenancy-1', unitId: 'unit-1', unitNumber: 'B-12', rentAmount: 35000,
+              securityDepositAmount: 35000,
               startDate: '2026-04-01', endDate: '2027-03-31', status: 'ACTIVE'
             } })
           }
@@ -58,5 +59,10 @@ describe('TenantPortalComponent', () => {
     expect(page.textContent).toContain('B-12');
     expect(page.textContent).toContain('1 open');
     expect(page.textContent).toContain('Leaking kitchen tap');
+
+    const depositLink = Array.from(page.querySelectorAll('a'))
+      .find(link => link.textContent?.trim() === 'Pay security deposit');
+    expect(depositLink?.getAttribute('href')).toContain('paymentType=security-deposit');
+    expect(depositLink?.getAttribute('href')).toContain('amount=35000');
   });
 });

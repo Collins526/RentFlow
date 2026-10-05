@@ -391,6 +391,9 @@ export class TenantPaymentsComponent implements OnInit {
       this.paymentType.set('rent');
       this.amount = params.get('amount') ?? '';
       this.reference = params.get('reference') ?? 'Rent payment';
+    } else if (params.get('paymentType') === 'security-deposit') {
+      this.selectPaymentType('security-deposit');
+      this.amount = params.get('amount') ?? '';
     }
 
     const tenantId = this.auth.currentUser()?.tenantId;

@@ -54,6 +54,7 @@ export interface TenantTenancy {
   unitId: string;
   unitNumber?: string;
   rentAmount: number;
+  securityDepositAmount?: number;
   startDate: string;
   endDate?: string;
   status: string;

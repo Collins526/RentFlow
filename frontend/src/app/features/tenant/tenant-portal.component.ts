@@ -57,9 +57,12 @@ interface TenantActivity {
               </ng-container>
               <ng-template #noDueInvoice>{{ tenancy() ? 'No outstanding invoice' : 'No active tenancy is linked to your account' }}</ng-template>
             </p>
-            <div class="mt-4 flex gap-2">
+            <div class="mt-4 flex flex-wrap gap-2">
               <a routerLink="/tenant/payments" [queryParams]="paymentQuery()" class="rounded-md bg-indigo-300 px-3 py-2 text-xs font-semibold text-slate-950 hover:bg-indigo-200">
                 Pay rent
+              </a>
+              <a *ngIf="tenancy()" routerLink="/tenant/payments" [queryParams]="securityDepositQuery()" class="rounded-md border border-white/15 px-3 py-2 text-xs font-semibold text-white hover:bg-white/5">
+                Pay security deposit
               </a>
               <a *ngIf="dueInvoice()" routerLink="/tenant/invoices" class="rounded-md border border-white/15 px-3 py-2 text-xs font-semibold text-white hover:bg-white/5">
                 View invoice
@@ -279,6 +282,15 @@ export class TenantPortalComponent implements OnInit {
       unitId: invoice.unitId || this.tenancy()?.unitId || '',
       reference: `Invoice ${invoice.id.slice(0, 8)}`
     } : {};
+  }
+
+  securityDepositQuery(): Record<string, string> {
+    const depositAmount = this.tenancy()?.securityDepositAmount;
+    return {
+      paymentType: 'security-deposit',
+      ...(depositAmount && depositAmount > 0 ? { amount: String(depositAmount) } : {}),
+      ...(this.tenancy()?.unitId ? { unitId: this.tenancy()!.unitId } : {})
+    };
   }
 
   invoicePeriod(invoice: TenantInvoice): string {
