@@ -1,8 +1,10 @@
-import { Component, HostListener, signal } from '@angular/core';
+import { Component, HostListener, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { SalesInquiryService } from '../../core/services/sales-inquiry.service';
 
 /** Anchors offered in the header and the in-page nav. Kept in one place so the
  *  mobile drawer and the desktop bar cannot drift apart. */
@@ -53,17 +55,19 @@ interface Testimonial {
  *
  * Renders outside the authenticated shell, so it carries its own header and
  * footer. Interactions (mobile drawer, FAQ accordion, header elevation) are
- * local signals; there is no data to fetch, which is why nothing here talks to
- * the API layer.
+ * local signals, with sales inquiries submitted to the public inquiry endpoint.
  */
 @Component({
   selector: 'app-landing',
   standalone: true,
-  imports: [CommonModule, RouterLink, MatButtonModule, MatIconModule],
+  imports: [CommonModule, RouterLink, ReactiveFormsModule, MatButtonModule, MatIconModule],
   templateUrl: './landing.component.html',
   styleUrl: './landing.component.scss'
 })
 export class LandingComponent {
+  private readonly formBuilder = inject(FormBuilder);
+  private readonly salesInquiryService = inject(SalesInquiryService);
+
   private readonly currentYear = new Date().getFullYear();
 
   readonly year = this.currentYear;
@@ -73,6 +77,17 @@ export class LandingComponent {
 
   /** Collapses the nav into a drawer below the `lg` breakpoint. */
   readonly menuOpen = signal(false);
+
+  /** Controls the sales inquiry dialog. */
+  readonly salesFormOpen = signal(false);
+  readonly salesSubmitting = signal(false);
+  readonly salesSuccess = signal('');
+  readonly salesError = signal('');
+  readonly salesForm = this.formBuilder.nonNullable.group({
+    name: ['', [Validators.required, Validators.maxLength(150)]],
+    email: ['', [Validators.required, Validators.email, Validators.maxLength(255)]],
+    message: ['', [Validators.required, Validators.maxLength(4000)]]
+  });
 
   /** Index of the expanded FAQ entry. Only one is open at a time. */
   readonly openFaq = signal<number | null>(0);
@@ -262,6 +277,43 @@ export class LandingComponent {
 
   closeMenu(): void {
     this.menuOpen.set(false);
+  }
+
+  openSalesForm(): void {
+    this.salesError.set('');
+    this.salesFormOpen.set(true);
+  }
+
+  closeSalesForm(): void {
+    this.salesFormOpen.set(false);
+  }
+
+  submitSalesForm(): void {
+    if (this.salesForm.invalid || this.salesSubmitting()) {
+      this.salesForm.markAllAsTouched();
+      return;
+    }
+
+    this.salesSubmitting.set(true);
+    this.salesError.set('');
+    this.salesSuccess.set('');
+    this.salesInquiryService.submit(this.salesForm.getRawValue()).subscribe({
+      next: () => {
+        this.salesSubmitting.set(false);
+        this.salesForm.reset();
+        this.salesFormOpen.set(false);
+        this.salesSuccess.set('Thanks. Your message has been sent to our sales team.');
+      },
+      error: () => {
+        this.salesSubmitting.set(false);
+        this.salesError.set('Your message could not be sent. Please try again.');
+      }
+    });
+  }
+
+  @HostListener('window:keydown.escape')
+  onEscapeKey(): void {
+    this.closeSalesForm();
   }
 
   toggleFaq(index: number): void {

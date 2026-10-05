@@ -3,6 +3,9 @@
   footer here are self-contained rather than reused from the layout.
 -->
 <div class="bg-white text-slate-900 antialiased">
+  <p *ngIf="salesSuccess()" role="status" class="fixed right-4 top-20 z-50 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900 shadow-lg">
+    {{ salesSuccess() }}
+  </p>
 
   <!-- ============================ Header ============================ -->
   <header
@@ -467,7 +470,14 @@
              class="mt-6 !w-full !rounded-xl !py-6">
             {{ plan.cta }}
           </a>
-          <a *ngIf="!plan.featured"
+           <button *ngIf="plan.cta === 'Talk to sales'"
+             type="button"
+             mat-stroked-button
+             class="mt-6 !w-full !rounded-xl !py-6"
+             (click)="openSalesForm()">
+            {{ plan.cta }}
+           </button>
+           <a *ngIf="!plan.featured && plan.cta !== 'Talk to sales'"
              routerLink="/register"
              mat-stroked-button
              class="mt-6 !w-full !rounded-xl !py-6">
@@ -623,4 +633,72 @@
       </div>
     </div>
   </footer>
+</div>
+
+<div *ngIf="salesFormOpen()"
+     class="fixed inset-0 z-60 flex items-center justify-center bg-slate-950/60 p-4"
+     (click)="closeSalesForm()">
+  <section role="dialog"
+           aria-modal="true"
+           aria-labelledby="sales-form-title"
+           class="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl sm:p-8"
+           (click)="$event.stopPropagation()">
+    <div class="flex items-start justify-between gap-4">
+      <div>
+        <h2 id="sales-form-title" class="text-2xl font-semibold text-slate-900">Talk to sales</h2>
+        <p class="mt-2 text-sm leading-relaxed text-slate-600">Tell us a little about what you need.</p>
+      </div>
+      <button type="button"
+              class="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+              aria-label="Close sales inquiry form"
+              (click)="closeSalesForm()">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <form [formGroup]="salesForm" class="mt-6 space-y-4" (ngSubmit)="submitSalesForm()">
+      <label class="block text-sm font-medium text-slate-700">
+        Name
+        <input name="name"
+               type="text"
+               autocomplete="name"
+               formControlName="name"
+               required
+               class="mt-1.5 block w-full rounded-lg border border-slate-300 px-3 py-2.5 text-base text-slate-900 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200" />
+      </label>
+      <label class="block text-sm font-medium text-slate-700">
+        Email
+        <input name="email"
+               type="email"
+               autocomplete="email"
+               formControlName="email"
+               required
+               class="mt-1.5 block w-full rounded-lg border border-slate-300 px-3 py-2.5 text-base text-slate-900 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200" />
+      </label>
+      <label class="block text-sm font-medium text-slate-700">
+        What would you like to discuss?
+        <textarea name="message"
+                  rows="4"
+                  formControlName="message"
+                  required
+                  class="mt-1.5 block w-full resize-y rounded-lg border border-slate-300 px-3 py-2.5 text-base text-slate-900 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"></textarea>
+      </label>
+      <p *ngIf="salesError()" role="alert" class="text-sm text-red-700">{{ salesError() }}</p>
+      <div class="flex justify-end pt-2">
+        <button type="button"
+                mat-stroked-button
+                class="!rounded-lg"
+                (click)="closeSalesForm()">
+          Close
+        </button>
+        <button type="submit"
+                mat-flat-button
+                color="primary"
+                class="ml-3 !rounded-lg"
+                [disabled]="salesSubmitting()">
+          {{ salesSubmitting() ? 'Sending…' : 'Send message' }}
+        </button>
+      </div>
+    </form>
+  </section>
 </div>

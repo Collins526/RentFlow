@@ -99,6 +99,12 @@ export const NAV_SECTIONS: NavSection[] = [
         icon: 'business',
         route: '/organization',
         roles: [Role.OrganizationOwner, Role.PlatformAdmin]
+      },
+      {
+        label: 'Sales inquiries',
+        icon: 'contact_mail',
+        route: '/sales-inquiries',
+        roles: [Role.PlatformAdmin]
       }
     ]
   }

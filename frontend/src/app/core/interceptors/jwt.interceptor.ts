@@ -17,7 +17,7 @@ export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
       // Basic implementation for 401. A real implementation would call the refresh token endpoint here.
-      if (error.status === 401 && !req.url.includes('/auth/login')) {
+      if (error.status === 401 && !req.url.includes('/auth/login') && !req.url.includes('/auth/logout')) {
         authService.logout();
       }
       return throwError(() => error);

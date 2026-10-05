@@ -4,6 +4,10 @@ import { Observable, tap } from 'rxjs';
 import { Router } from '@angular/router';
 import { Role, RoleName } from '../auth/roles';
 
+const INACTIVITY_TIMEOUT_MS = 5 * 60 * 1000;
+const LAST_ACTIVITY_KEY = 'lastActivityAt';
+const ACTIVITY_EVENTS = ['pointerdown', 'keydown', 'mousemove', 'touchstart', 'scroll'] as const;
+
 export interface AuthUser {
   id: string;
   email: string;
@@ -34,6 +38,7 @@ export interface ApiResponse<T> {
 })
 export class AuthService {
   private apiUrl = '/api/v1/auth';
+  private inactivityTimer: ReturnType<typeof setTimeout> | null = null;
   
   // Using Signals for state management
   currentUser = signal<AuthUser | null>(null);
@@ -74,6 +79,10 @@ export class AuthService {
 
   constructor(private http: HttpClient, private router: Router) {
     this.loadUserFromStorage();
+    this.installActivityListeners();
+    if (this.isAuthenticated()) {
+      this.scheduleInactivityLogout();
+    }
   }
 
   hasRole(role: RoleName): boolean {
@@ -110,6 +119,7 @@ export class AuthService {
     removeStored('user');
     removeStored('accessToken');
     removeStored('refreshToken');
+    removeStored(LAST_ACTIVITY_KEY);
   }
 
   login(credentials: any): Observable<ApiResponse<AuthResponse>> {
@@ -134,9 +144,9 @@ export class AuthService {
 
   logout() {
     this.http.post(`${this.apiUrl}/logout`, {}).subscribe({
-      next: () => this.clearSession(),
-      error: () => this.clearSession()
+      error: () => {}
     });
+    this.clearSession();
   }
 
   private handleAuthSuccess(data: AuthResponse) {
@@ -146,6 +156,7 @@ export class AuthService {
 
     this.currentUser.set(data.user);
     this.isAuthenticated.set(true);
+    this.recordActivity();
 
     // Honour the deep link the guard stashed, so a bookmarked page survives login.
     const returnUrl = this.router.routerState.snapshot.root.queryParams['returnUrl'];
@@ -155,6 +166,7 @@ export class AuthService {
   }
 
   private clearSession() {
+    this.stopInactivityTimer();
     this.clearStoredSession();
 
     this.currentUser.set(null);
@@ -164,6 +176,70 @@ export class AuthService {
 
   getAccessToken(): string | null {
     return readStored('accessToken');
+  }
+
+  private installActivityListeners(): void {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    for (const eventName of ACTIVITY_EVENTS) {
+      window.addEventListener(eventName, this.recordActivity);
+    }
+    window.addEventListener('storage', this.handleStorageActivity);
+    document.addEventListener('visibilitychange', this.scheduleInactivityLogout);
+  }
+
+  private recordActivity = (event?: Event): void => {
+    if (!this.isAuthenticated()) {
+      return;
+    }
+
+    const now = Date.now();
+    const lastActivityAt = Number(readStored(LAST_ACTIVITY_KEY));
+    if (event?.type === 'mousemove' && Number.isFinite(lastActivityAt) && now - lastActivityAt < 1000) {
+      return;
+    }
+
+    writeStored(LAST_ACTIVITY_KEY, String(now));
+    this.scheduleInactivityLogout();
+  };
+
+  private handleStorageActivity = (event: StorageEvent): void => {
+    if (event.key === LAST_ACTIVITY_KEY && this.isAuthenticated()) {
+      this.scheduleInactivityLogout();
+    }
+  };
+
+  private scheduleInactivityLogout = (): void => {
+    if (!this.isAuthenticated()) {
+      return;
+    }
+
+    this.stopInactivityTimer();
+    const storedActivity = readStored(LAST_ACTIVITY_KEY);
+    const lastActivityAt = Number(storedActivity);
+    if (!storedActivity || !Number.isFinite(lastActivityAt) || lastActivityAt <= 0) {
+      writeStored(LAST_ACTIVITY_KEY, String(Date.now()));
+    }
+    const elapsed = storedActivity && Number.isFinite(lastActivityAt) && lastActivityAt > 0
+      ? Math.max(0, Date.now() - lastActivityAt)
+      : 0;
+    const remaining = INACTIVITY_TIMEOUT_MS - elapsed;
+
+    if (remaining <= 0) {
+      this.logout();
+      return;
+    }
+
+    this.inactivityTimer = setTimeout(this.scheduleInactivityLogout, remaining);
+  };
+
+  private stopInactivityTimer(): void {
+    if (this.inactivityTimer !== null) {
+      clearTimeout(this.inactivityTimer);
+      this.inactivityTimer = null;
+    }
   }
 }
 

@@ -104,6 +104,13 @@ export const routes: Routes = [
             .then(m => m.OrganizationSettingsComponent)
       },
       {
+        path: 'sales-inquiries',
+        canActivate: [roleGuard([Role.PlatformAdmin])],
+        data: { breadcrumb: 'Sales inquiries' },
+        loadComponent: () =>
+          import('./features/admin/sales-inquiries.component').then(m => m.SalesInquiriesComponent)
+      },
+      {
         path: 'tenant',
         canActivate: [roleGuard([Role.Tenant])],
         data: { breadcrumb: 'Tenant Portal' },
