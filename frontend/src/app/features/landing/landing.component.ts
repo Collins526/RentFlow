@@ -27,6 +27,7 @@ interface Step {
 }
 
 interface Plan {
+  code?: string;
   name: string;
   price: number | null;
   priceLabel: string;
@@ -160,6 +161,7 @@ export class LandingComponent {
 
   readonly plans: Plan[] = [
     {
+      code: 'STARTER',
       name: 'Starter',
       price: 2500,
       priceLabel: '',
@@ -176,6 +178,7 @@ export class LandingComponent {
       cta: 'Start free trial'
     },
     {
+      code: 'GROWTH',
       name: 'Growth',
       price: 6500,
       priceLabel: '',

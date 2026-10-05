@@ -24,6 +24,8 @@ import com.rentflow.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,6 +39,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
@@ -150,6 +153,23 @@ public class TenancyServiceImpl implements TenancyService {
         Unit unit = unitRepository.findById(tenancy.getUnitId()).orElse(null);
 
         return TenancyMapper.toDto(tenancy, tenant, unit);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<TenancyResponse> getMyActiveTenancy() {
+        UUID tenantId = SecurityUtils.getCurrentUserTenantIdOrNull();
+        if (tenantId == null) {
+            return Optional.empty();
+        }
+
+        Page<TenancyResponse> tenancies = toDtoPage(findFiltered(
+                SecurityUtils.getCurrentUserOrganizationId(),
+                TenancyStatus.ACTIVE,
+                tenantId,
+                null,
+                PageRequest.of(0, 1, Sort.by(Sort.Direction.DESC, "startDate"))));
+        return tenancies.getContent().stream().findFirst();
     }
 
     @Override

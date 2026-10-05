@@ -32,6 +32,12 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./authentication/register/register.component').then(m => m.RegisterComponent)
   },
+  {
+    path: 'checkout/:planCode',
+    canActivate: [guestGuard],
+    loadComponent: () =>
+      import('./authentication/checkout/checkout.component').then(m => m.CheckoutComponent)
+  },
 
   {
     path: '',

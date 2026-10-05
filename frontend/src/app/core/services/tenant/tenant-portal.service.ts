@@ -16,6 +16,7 @@ export interface TenantInvoice {
   periodEnd?: string;
   dueDate?: string;
   notes?: string;
+  createdAt?: string;
 }
 
 export interface TenantPayment {
@@ -28,6 +29,8 @@ export interface TenantPayment {
   status: string;
   paymentDate?: string;
   reference?: string;
+  paidAt?: string;
+  createdAt?: string;
 }
 
 export interface TenantMaintenanceRequest {
@@ -43,6 +46,17 @@ export interface TenantMaintenanceRequest {
   status: string;
   priority?: string;
   requestedDate?: string;
+  createdAt?: string;
+}
+
+export interface TenantTenancy {
+  id: string;
+  unitId: string;
+  unitNumber?: string;
+  rentAmount: number;
+  startDate: string;
+  endDate?: string;
+  status: string;
 }
 
 export interface CreateTenantMaintenanceRequest {
@@ -113,6 +127,10 @@ export class TenantPortalService {
       .set('size', size.toString());
 
     return this.http.get<ApiResponse<Page<TenantMaintenanceRequest>>>(`${this.apiUrl}/maintenance`, { params });
+  }
+
+  getMyActiveTenancy(): Observable<ApiResponse<TenantTenancy | null>> {
+    return this.http.get<ApiResponse<TenantTenancy | null>>(`${this.apiUrl}/tenancies/my-active`);
   }
 
   createMaintenanceRequest(request: CreateTenantMaintenanceRequest): Observable<ApiResponse<TenantMaintenanceRequest>> {

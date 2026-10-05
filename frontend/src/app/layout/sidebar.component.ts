@@ -21,23 +21,28 @@ import { Role } from '../core/auth/roles';
   imports: [CommonModule, RouterLink, RouterLinkActive, MatIconModule, MatTooltipModule, MatRippleModule],
   template: `
     <nav class="h-full flex flex-col bg-[#0b1220] text-slate-300 shadow-[inset_-1px_0_0_rgba(255,255,255,0.04)]"
-         [class.w-64]="!collapsed()"
+          [class.w-40]="!collapsed() && isTenant()"
+          [class.w-64]="!collapsed() && !isTenant()"
          [class.w-20]="collapsed()"
          aria-label="Main navigation">
 
-      <div class="flex items-center gap-3 h-16 px-5 shrink-0 border-b border-white/5">
+       <div class="flex items-center gap-3 shrink-0 border-b border-white/5"
+         [class.h-11]="isTenant()"
+         [class.h-16]="!isTenant()"
+         [class.px-3]="isTenant()"
+         [class.px-5]="!isTenant()">
         <img src="/rentflow-mark.svg" alt="" class="h-9 w-9 shrink-0 rounded-lg" />
         <span *ngIf="!collapsed()" class="text-lg font-semibold text-white tracking-tight">RentFlow</span>
       </div>
 
       <div class="flex-1 overflow-y-auto py-4">
         <div *ngFor="let section of visibleSections()" class="mb-5">
-          <p *ngIf="section.heading && !collapsed()"
+          <p *ngIf="section.heading && !collapsed() && !isTenant()"
              class="px-5 mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
             {{ section.heading }}
           </p>
           <!-- Keeps the icon rail visually grouped once the headings are hidden. -->
-          <div *ngIf="section.heading && collapsed()" class="mx-5 mb-2 border-t border-white/5"></div>
+          <div *ngIf="section.heading && collapsed() && !isTenant()" class="mx-5 mb-2 border-t border-white/5"></div>
 
           <a *ngFor="let item of section.items"
              [routerLink]="item.route"
@@ -85,7 +90,12 @@ export class SidebarComponent {
         ...section,
         items: section.items.filter(item =>
           this.auth.hasAnyRole(item.roles)
-          && !(item.hideFromPlatformAdmin && this.auth.hasRole(Role.PlatformAdmin)))
+          && !(item.hideFromPlatformAdmin && this.auth.hasRole(Role.PlatformAdmin))
+          && !(item.hideFromTenant && this.isTenant()))
       }))
       .filter(section => section.items.length > 0));
+
+  protected isTenant(): boolean {
+    return this.auth.hasRole(Role.Tenant);
+  }
 }

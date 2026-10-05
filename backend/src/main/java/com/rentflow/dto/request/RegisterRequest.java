@@ -10,6 +10,7 @@ import lombok.Data;
 public class RegisterRequest {
     @NotBlank(message = "Email is required")
     @Email(message = "Invalid email format")
+    @Size(max = 150, message = "Email cannot exceed 150 characters")
     private String email;
 
     @NotBlank(message = "Password is required")
@@ -29,4 +30,10 @@ public class RegisterRequest {
     @NotBlank(message = "Organization name is required")
     @Size(max = 100, message = "Organization name cannot exceed 100 characters")
     private String organizationName;
+
+    @Pattern(regexp = "STARTER|GROWTH", message = "Plan must be STARTER or GROWTH")
+    private String planCode;
+
+    @Size(max = 20, message = "Phone number cannot exceed 20 characters")
+    private String phoneNumber;
 }

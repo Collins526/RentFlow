@@ -18,7 +18,8 @@ function renderFor(roles: RoleName[]) {
         provide: AuthService,
         useValue: {
           hasAnyRole: (allowed: readonly RoleName[]) =>
-            allowed.length === 0 || allowed.some(role => held.has(role))
+            allowed.length === 0 || allowed.some(role => held.has(role)),
+          hasRole: (role: RoleName) => held.has(role)
         }
       }
     ]

@@ -8,6 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.util.UUID;
+import java.util.Optional;
 
 public interface TenancyService {
 
@@ -16,6 +17,8 @@ public interface TenancyService {
     TenancyResponse updateTenancy(UUID id, TenancyRequest request);
 
     TenancyResponse getTenancyById(UUID id);
+
+    Optional<TenancyResponse> getMyActiveTenancy();
 
     /**
      * Lists tenancies in the caller's organization. Every filter is optional; passing

@@ -43,6 +43,15 @@ describe('LandingComponent', () => {
     expect(compiled.querySelector('a[href="/login"]')).toBeTruthy();
   });
 
+  it('routes paid plan trial buttons to their selected checkout plans', () => {
+    const fixture = TestBed.createComponent(LandingComponent);
+    fixture.detectChanges();
+    const compiled = fixture.nativeElement as HTMLElement;
+
+    expect(compiled.querySelector('a[href="/checkout/STARTER"]')?.textContent).toContain('Start free trial');
+    expect(compiled.querySelector('a[href="/checkout/GROWTH"]')?.textContent).toContain('Start free trial');
+  });
+
   it('opens a sales inquiry form from the Portfolio plan', () => {
     const fixture = TestBed.createComponent(LandingComponent);
     fixture.detectChanges();

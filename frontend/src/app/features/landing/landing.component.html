@@ -464,7 +464,7 @@
           <!-- The two buttons differ only in fill, so the featured plan gets the
                filled treatment and the rest an outlined one. -->
           <a *ngIf="plan.featured"
-             routerLink="/register"
+             [routerLink]="['/checkout', plan.code]"
              mat-flat-button
              color="primary"
              class="mt-6 !w-full !rounded-xl !py-6">
@@ -478,7 +478,7 @@
             {{ plan.cta }}
            </button>
            <a *ngIf="!plan.featured && plan.cta !== 'Talk to sales'"
-             routerLink="/register"
+             [routerLink]="['/checkout', plan.code]"
              mat-stroked-button
              class="mt-6 !w-full !rounded-xl !py-6">
             {{ plan.cta }}

@@ -27,8 +27,13 @@ import { Role } from '../core/auth/roles';
     BreadcrumbsComponent
   ],
   template: `
-    <header class="h-16 shrink-0 bg-slate-900 border-b border-slate-700 flex items-center gap-3 px-4 sm:px-6">
-      <button mat-icon-button
+    <header class="shrink-0 bg-slate-900 border-b border-slate-700 flex items-center gap-3"
+            [class.h-11]="isTenant()"
+            [class.h-16]="!isTenant()"
+            [class.px-3]="isTenant()"
+            [class.px-4]="!isTenant()"
+            [class.sm:px-6]="!isTenant()">
+      <button *ngIf="!isTenant()" mat-icon-button
               (click)="toggleSidebar.emit()"
               [matTooltip]="sidebarCollapsed() ? 'Expand menu' : 'Collapse menu'"
               aria-label="Toggle navigation"
@@ -91,5 +96,9 @@ export class TopbarComponent {
 
   protected canManageOrganization(): boolean {
     return this.auth.hasRole(Role.OrganizationOwner) && !this.auth.hasRole(Role.PlatformAdmin);
+  }
+
+  protected isTenant(): boolean {
+    return this.auth.hasRole(Role.Tenant);
   }
 }

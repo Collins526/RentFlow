@@ -66,6 +66,13 @@ public class TenancyController {
         return ResponseEntity.ok(ApiResponse.success(tenancy, "Tenancy fetched successfully"));
     }
 
+    @GetMapping("/my-active")
+    @PreAuthorize("hasRole('TENANT')")
+    public ResponseEntity<ApiResponse<TenancyResponse>> getMyActiveTenancy() {
+        TenancyResponse tenancy = tenancyService.getMyActiveTenancy().orElse(null);
+        return ResponseEntity.ok(ApiResponse.success(tenancy, "Active tenancy fetched successfully"));
+    }
+
     @PutMapping("/{id}")
     @PreAuthorize(MANAGE_ROLES)
     public ResponseEntity<ApiResponse<TenancyResponse>> updateTenancy(

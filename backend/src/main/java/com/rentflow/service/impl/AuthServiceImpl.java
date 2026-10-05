@@ -29,6 +29,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -75,7 +76,16 @@ public class AuthServiceImpl implements AuthService {
         // Create new Organization
         com.rentflow.entity.Organization organization = com.rentflow.entity.Organization.builder()
                 .name(request.getOrganizationName())
+            .email(request.getEmail())
+            .phone(request.getPhoneNumber())
                 .build();
+        if (request.getPlanCode() != null) {
+            Instant trialStartedAt = Instant.now();
+            organization.setPlanCode(request.getPlanCode());
+            organization.setSubscriptionStatus("TRIAL");
+            organization.setTrialStartedAt(trialStartedAt);
+            organization.setTrialEndsAt(trialStartedAt.plus(30, ChronoUnit.DAYS));
+        }
         organization = organizationRepository.save(organization);
 
         User user = User.builder()

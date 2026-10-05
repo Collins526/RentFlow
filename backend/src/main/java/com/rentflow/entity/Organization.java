@@ -9,6 +9,7 @@ import lombok.Setter;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import java.time.Instant;
 
 @Entity
 @Table(name = "organizations")
@@ -37,4 +38,16 @@ public class Organization extends BaseEntity {
     @Column(nullable = false, length = 30)
     @Builder.Default
     private String status = "ACTIVE";
+
+    @Column(name = "plan_code", length = 20)
+    private String planCode;
+
+    @Column(name = "subscription_status", length = 20)
+    private String subscriptionStatus;
+
+    @Column(name = "trial_started_at")
+    private Instant trialStartedAt;
+
+    @Column(name = "trial_ends_at")
+    private Instant trialEndsAt;
 }

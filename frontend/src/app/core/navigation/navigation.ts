@@ -13,6 +13,8 @@ export interface NavItem {
   roles: RoleName[];
   /** Platform admins drill into portfolio data from an organization instead. */
   hideFromPlatformAdmin?: boolean;
+  /** Excludes portfolio-wide items from the tenant's focused portal menu. */
+  hideFromTenant?: boolean;
   /**
    * Match the route as a prefix rather than exactly, so `/properties/:id` keeps
    * the Properties item highlighted.
@@ -29,7 +31,7 @@ export interface NavSection {
 export const NAV_SECTIONS: NavSection[] = [
   {
     items: [
-      { label: 'Dashboard', icon: 'dashboard', route: '/dashboard', roles: PORTFOLIO_READ_ROLES }
+      { label: 'Dashboard', icon: 'dashboard', route: '/dashboard', roles: PORTFOLIO_READ_ROLES, hideFromTenant: true }
     ]
   },
   {
@@ -87,6 +89,24 @@ export const NAV_SECTIONS: NavSection[] = [
         label: 'Tenant portal',
         icon: 'house',
         route: '/tenant',
+        roles: [Role.Tenant]
+      },
+      {
+        label: 'Invoices',
+        icon: 'receipt_long',
+        route: '/tenant/invoices',
+        roles: [Role.Tenant]
+      },
+      {
+        label: 'Payments',
+        icon: 'payments',
+        route: '/tenant/payments',
+        roles: [Role.Tenant]
+      },
+      {
+        label: 'Requests',
+        icon: 'build',
+        route: '/tenant/requests',
         roles: [Role.Tenant]
       }
     ]
