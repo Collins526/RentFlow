@@ -276,12 +276,15 @@ export class TenantPortalComponent implements OnInit {
 
   paymentQuery(): Record<string, string> {
     const invoice = this.dueInvoice();
-    return invoice ? {
-      invoiceId: invoice.id,
-      amount: String(invoice.amount),
-      unitId: invoice.unitId || this.tenancy()?.unitId || '',
-      reference: `Invoice ${invoice.id.slice(0, 8)}`
-    } : {};
+    return {
+      paymentType: 'rent',
+      ...(invoice ? {
+        invoiceId: invoice.id,
+        amount: String(invoice.amount),
+        unitId: invoice.unitId || this.tenancy()?.unitId || '',
+        reference: `Invoice ${invoice.id.slice(0, 8)}`
+      } : {})
+    };
   }
 
   securityDepositQuery(): Record<string, string> {

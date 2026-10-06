@@ -60,9 +60,32 @@ describe('TenantPortalComponent', () => {
     expect(page.textContent).toContain('1 open');
     expect(page.textContent).toContain('Leaking kitchen tap');
 
+    const rentLink = Array.from(page.querySelectorAll('a'))
+      .find(link => link.textContent?.trim() === 'Pay rent');
+    expect(rentLink?.getAttribute('href')).toContain('paymentType=rent');
+    expect(rentLink?.getAttribute('href')).toContain('invoiceId=invoice-12345678');
+
     const depositLink = Array.from(page.querySelectorAll('a'))
       .find(link => link.textContent?.trim() === 'Pay security deposit');
     expect(depositLink?.getAttribute('href')).toContain('paymentType=security-deposit');
     expect(depositLink?.getAttribute('href')).toContain('amount=35000');
+  });
+
+  it('opens the rent payment form when there is no outstanding invoice', () => {
+    const service = TestBed.inject(TenantPortalService);
+    vi.spyOn(service, 'getInvoices').mockReturnValue(of({
+      success: true,
+      message: '',
+      errors: [],
+      data: { content: [], totalElements: 0, totalPages: 0, size: 100, number: 0 }
+    }));
+
+    const fixture = TestBed.createComponent(TenantPortalComponent);
+    fixture.detectChanges();
+    const page = fixture.nativeElement as HTMLElement;
+    const rentLink = Array.from(page.querySelectorAll('a'))
+      .find(link => link.textContent?.trim() === 'Pay rent');
+
+    expect(rentLink?.getAttribute('href')).toContain('paymentType=rent');
   });
 });
