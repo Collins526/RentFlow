@@ -53,7 +53,7 @@ admin@rentflow.com
 RentFlow123!
 
 colinskibet526@gmail.com
-Colins@526
+Collins@526
 
 mannukiptoo@gmail.com
 qvqV4Y(a+A1y

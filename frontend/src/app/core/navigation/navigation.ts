@@ -44,6 +44,14 @@ export const NAV_SECTIONS: NavSection[] = [
         roles: PORTFOLIO_READ_ROLES,
         hideFromPlatformAdmin: true,
         matchPrefix: true
+      },
+      {
+        label: 'Units',
+        icon: 'door_front',
+        route: '/units',
+        roles: PORTFOLIO_READ_ROLES,
+        hideFromPlatformAdmin: true,
+        matchPrefix: true
       }
     ]
   },

@@ -334,7 +334,7 @@ interface MetricTile {
           <article class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
             <p class="text-sm text-slate-500">Vacant units</p>
             <p class="mt-1 text-2xl font-bold text-slate-900">{{ data.vacantUnits }}</p>
-            <a routerLink="/properties" class="mt-1 inline-block text-xs font-semibold text-indigo-700 hover:underline">View properties</a>
+            <a routerLink="/units" class="mt-1 inline-block text-xs font-semibold text-indigo-700 hover:underline">View units</a>
           </article>
         </section>
 

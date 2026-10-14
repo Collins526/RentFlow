@@ -71,6 +71,13 @@ export const routes: Routes = [
         ]
       },
       {
+        path: 'units',
+        canActivate: [roleGuard(PORTFOLIO_READ_ROLES)],
+        data: { breadcrumb: 'Units' },
+        loadComponent: () =>
+          import('./features/units/unit-overview.component').then(m => m.UnitOverviewComponent)
+      },
+      {
         path: 'blocks/:id',
         canActivate: [roleGuard(PORTFOLIO_READ_ROLES)],
         data: { breadcrumb: 'Block details' },
