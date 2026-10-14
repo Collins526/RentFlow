@@ -48,6 +48,10 @@ export class InvoiceService {
     return this.http.post<ApiResponse<OwnerInvoice>>(this.apiUrl, request);
   }
 
+  updateInvoice(id: string, request: CreateInvoiceRequest): Observable<ApiResponse<OwnerInvoice>> {
+    return this.http.put<ApiResponse<OwnerInvoice>>(`${this.apiUrl}/${id}`, request);
+  }
+
   issueInvoice(id: string): Observable<ApiResponse<OwnerInvoice>> {
     return this.http.post<ApiResponse<OwnerInvoice>>(`${this.apiUrl}/${id}/issue`, {});
   }

@@ -17,6 +17,7 @@ import { formatEnumLabel } from '../../core/services/unit/unit.service';
 import { ToastService, resolveApiMessage } from '../../core/services/toast.service';
 import { PageHeaderComponent, StatusChipComponent, statusTone } from '../../shared/ui';
 import { BulkInvoiceFormComponent } from './bulk-invoice-form.component';
+import { InvoiceEditDialogComponent } from './invoice-edit-dialog.component';
 
 @Component({
   selector: 'app-invoice-list',
@@ -115,6 +116,11 @@ import { BulkInvoiceFormComponent } from './bulk-invoice-form.component';
               <app-status-chip [label]="formatLabel(invoiceStatus(invoice.status))" [tone]="statusTone(invoice.status)"></app-status-chip>
             </div>
           </div>
+          <div *ngIf="invoice.status === 'DRAFT' || invoice.status === 'ISSUED'" class="mt-3 flex justify-end">
+            <button mat-stroked-button type="button" (click)="editInvoice(invoice)">
+              <mat-icon>edit</mat-icon> Edit
+            </button>
+          </div>
           <div class="mt-3 flex flex-wrap gap-4 text-sm text-slate-500">
             <span>Due {{ invoice.dueDate | date:'mediumDate' }}</span>
             <span>Period {{ invoice.periodStart | date:'mediumDate' }} to {{ invoice.periodEnd | date:'mediumDate' }}</span>
@@ -192,6 +198,22 @@ export class InvoiceListComponent implements OnInit {
     dialogRef.afterClosed().subscribe(issued => {
       if (issued?.length) {
         this.invoices.update(items => [...issued, ...items]);
+      }
+    });
+  }
+
+  editInvoice(invoice: OwnerInvoice): void {
+    const dialogRef = this.dialog.open(InvoiceEditDialogComponent, {
+      width: '560px',
+      maxWidth: '95vw',
+      data: invoice,
+      disableClose: true
+    });
+
+    dialogRef.afterClosed().subscribe(updated => {
+      if (updated) {
+        this.invoices.update(items => items.map(item => item.id === updated.id ? updated : item));
+        this.toast.success('Invoice updated successfully.');
       }
     });
   }

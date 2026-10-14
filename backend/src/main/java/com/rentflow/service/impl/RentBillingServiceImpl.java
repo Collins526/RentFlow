@@ -72,6 +72,37 @@ public class RentBillingServiceImpl implements RentBillingService {
 
     @Override
     @Transactional
+    public RentInvoiceResponse updateInvoice(UUID id, RentInvoiceRequest request) {
+        UUID organizationId = SecurityUtils.getCurrentUserOrganizationId();
+        RentInvoice invoice = getInvoiceOrThrow(id, organizationId);
+
+        if (invoice.getStatus() != InvoiceStatus.DRAFT && invoice.getStatus() != InvoiceStatus.ISSUED) {
+            throw new BadRequestException("Only draft or unpaid issued invoices can be edited");
+        }
+        if (paymentRepository.existsByInvoiceIdAndDeletedAtIsNull(id)) {
+            throw new BadRequestException("An invoice with recorded payments cannot be edited");
+        }
+        if (request.getPeriodEnd().isBefore(request.getPeriodStart())) {
+            throw new BadRequestException("Period end cannot be before period start");
+        }
+
+        Unit unit = unitRepository.findByIdAndOrganizationId(invoice.getUnitId(), organizationId)
+                .orElseThrow(() -> new ResourceNotFoundException("Unit not found"));
+
+        invoice.setPeriodStart(request.getPeriodStart());
+        invoice.setPeriodEnd(request.getPeriodEnd());
+        invoice.setDueDate(request.getDueDate() != null ? request.getDueDate() : request.getPeriodEnd());
+        invoice.setAmount(request.getAmount() != null ? request.getAmount() : resolveDefaultAmount(unit));
+        invoice.setNotes(request.getNotes());
+
+        RentInvoice saved = rentInvoiceRepository.save(invoice);
+        Tenant tenant = tenantRepository.findByIdAndOrganizationId(saved.getTenantId(), organizationId)
+                .orElseThrow(() -> new ResourceNotFoundException("Tenant not found"));
+        return RentInvoiceMapper.toDto(saved, tenant, unit);
+    }
+
+    @Override
+    @Transactional
     public RentInvoiceResponse issueInvoice(UUID id) {
         UUID organizationId = SecurityUtils.getCurrentUserOrganizationId();
         RentInvoice invoice = getInvoiceOrThrow(id, organizationId);

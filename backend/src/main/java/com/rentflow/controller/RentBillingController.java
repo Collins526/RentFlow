@@ -35,6 +35,14 @@ public class RentBillingController {
         return new ResponseEntity<>(ApiResponse.success(invoice, "Invoice created"), HttpStatus.CREATED);
     }
 
+    @PutMapping("/{id}")
+    @PreAuthorize(MANAGE_ROLES)
+    public ResponseEntity<ApiResponse<RentInvoiceResponse>> updateInvoice(
+            @PathVariable UUID id, @Valid @RequestBody RentInvoiceRequest request) {
+        RentInvoiceResponse invoice = rentBillingService.updateInvoice(id, request);
+        return ResponseEntity.ok(ApiResponse.success(invoice, "Invoice updated"));
+    }
+
     @PostMapping("/{id}/issue")
     @PreAuthorize(MANAGE_ROLES)
     public ResponseEntity<ApiResponse<RentInvoiceResponse>> issueInvoice(@PathVariable UUID id) {

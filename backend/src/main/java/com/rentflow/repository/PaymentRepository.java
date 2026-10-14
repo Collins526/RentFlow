@@ -20,6 +20,8 @@ public interface PaymentRepository extends JpaRepository<Payment, UUID> {
 
     boolean existsByInvoiceIdAndStatusAndDeletedAtIsNull(UUID invoiceId, PaymentStatus status);
 
+    boolean existsByInvoiceIdAndDeletedAtIsNull(UUID invoiceId);
+
     Page<Payment> findByOrganizationIdAndDeletedAtIsNull(UUID organizationId, Pageable pageable);
 
     Page<Payment> findByOrganizationIdAndTenantIdAndDeletedAtIsNull(UUID organizationId, UUID tenantId, Pageable pageable);

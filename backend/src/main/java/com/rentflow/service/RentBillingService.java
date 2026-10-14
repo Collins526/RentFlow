@@ -12,6 +12,8 @@ public interface RentBillingService {
 
     RentInvoiceResponse createInvoice(RentInvoiceRequest request);
 
+    RentInvoiceResponse updateInvoice(UUID id, RentInvoiceRequest request);
+
     RentInvoiceResponse issueInvoice(UUID id);
 
     RentInvoiceResponse markPaid(UUID id);
