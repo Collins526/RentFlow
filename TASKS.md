@@ -25,3 +25,16 @@
 - [x] 23. Dashboard
 - [x] 24. M-Pesa Integration
 - [x] 25. AI Features
+
+Admin logins:
+admin@rentflow.com
+RentFlow123!
+
+colinskibet526@gmail.com
+Collins@526
+
+mannukiptoo@gmail.com
+qvqV4Y(a+A1y
+
+johnpaul@gmail.com
+n8sMu_4UqhfU

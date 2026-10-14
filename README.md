@@ -48,12 +48,3 @@ Start the frontend from its directory:
 Set-Location frontend
 npm start
 ```
-Admin logins:
-admin@rentflow.com
-RentFlow123!
-
-colinskibet526@gmail.com
-Collins@526
-
-mannukiptoo@gmail.com
-qvqV4Y(a+A1y
