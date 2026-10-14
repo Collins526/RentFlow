@@ -38,6 +38,7 @@ export function statusTone(status: string | null | undefined): StatusTone {
   switch (status) {
     case 'ACTIVE':
     case 'OCCUPIED':
+    case 'ISSUED':
       return 'success';
     case 'UPCOMING':
     case 'RESERVED':
