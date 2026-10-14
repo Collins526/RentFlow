@@ -22,7 +22,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.Instant;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.HashSet;
 
@@ -79,8 +78,6 @@ class AuthServiceImplTest {
 
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class))).thenReturn(auth);
         when(jwtUtils.generateJwtToken(auth)).thenReturn("mock-jwt-token");
-        when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
-
         RefreshToken refreshToken = new RefreshToken();
         refreshToken.setToken("mock-refresh-token");
         when(refreshTokenRepository.save(any(RefreshToken.class))).thenReturn(refreshToken);
@@ -96,6 +93,8 @@ class AuthServiceImplTest {
 
         verify(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
         verify(jwtUtils).generateJwtToken(auth);
+        verify(userRepository, never()).findById(any());
+        verify(refreshTokenRepository).deleteByUser(user);
     }
 
     @Test
@@ -121,8 +120,6 @@ class AuthServiceImplTest {
 
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class))).thenReturn(auth);
         when(jwtUtils.generateJwtToken(auth)).thenReturn("mock-jwt-token");
-        when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
-
         RefreshToken refreshToken = new RefreshToken();
         refreshToken.setToken("mock-refresh-token");
         when(refreshTokenRepository.save(any(RefreshToken.class))).thenReturn(refreshToken);
@@ -132,5 +129,6 @@ class AuthServiceImplTest {
         assertNotNull(response.getUser());
         assertEquals(tenantId, response.getUser().getTenantId());
         assertEquals(unitId, response.getUser().getUnitId());
+        verify(userRepository, never()).findById(any());
     }
 }

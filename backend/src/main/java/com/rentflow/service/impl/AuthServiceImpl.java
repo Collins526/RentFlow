@@ -61,7 +61,7 @@ public class AuthServiceImpl implements AuthService {
         User user = userDetails.getUser();
 
         String jwt = jwtUtils.generateJwtToken(authentication);
-        RefreshToken refreshToken = createRefreshToken(user.getId());
+        RefreshToken refreshToken = createRefreshToken(user);
 
         return buildAuthResponse(jwt, refreshToken.getToken(), user);
     }
@@ -110,7 +110,7 @@ public class AuthServiceImpl implements AuthService {
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         String jwt = jwtUtils.generateJwtToken(authentication);
-        RefreshToken refreshToken = createRefreshToken(user.getId());
+        RefreshToken refreshToken = createRefreshToken(user);
 
         return buildAuthResponse(jwt, refreshToken.getToken(), user);
     }
@@ -129,7 +129,7 @@ public class AuthServiceImpl implements AuthService {
 
                     User user = token.getUser();
                     String jwt = jwtUtils.generateTokenFromUsername(user.getEmail());
-                    RefreshToken newRefreshToken = createRefreshToken(user.getId());
+                    RefreshToken newRefreshToken = createRefreshToken(user);
 
                     return buildAuthResponse(jwt, newRefreshToken.getToken(), user);
                 })
@@ -154,10 +154,7 @@ public class AuthServiceImpl implements AuthService {
         return mapToAuthUserDTO(userDetails.getUser());
     }
 
-    private RefreshToken createRefreshToken(UUID userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-        
+    private RefreshToken createRefreshToken(User user) {
         // Ensure only one active refresh token per user (or allow multiple for multi-device)
         // Here we keep it simple: clear old tokens
         refreshTokenRepository.deleteByUser(user);
