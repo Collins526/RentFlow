@@ -2,6 +2,7 @@ import { CommonModule, CurrencyPipe, DatePipe } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
@@ -15,16 +16,20 @@ import { InvoiceService, OwnerInvoice } from '../../core/services/invoice/invoic
 import { formatEnumLabel } from '../../core/services/unit/unit.service';
 import { ToastService, resolveApiMessage } from '../../core/services/toast.service';
 import { PageHeaderComponent, StatusChipComponent, statusTone } from '../../shared/ui';
+import { BulkInvoiceFormComponent } from './bulk-invoice-form.component';
 
 @Component({
   selector: 'app-invoice-list',
   standalone: true,
   imports: [
-    CommonModule, ReactiveFormsModule, MatButtonModule, MatFormFieldModule,
+    CommonModule, ReactiveFormsModule, MatButtonModule, MatDialogModule, MatFormFieldModule,
     MatIconModule, MatInputModule, MatSelectModule, PageHeaderComponent, StatusChipComponent
   ],
   template: `
     <app-page-header title="Rent invoices" subtitle="Create clear monthly rent bills for your tenants.">
+      <button actions mat-stroked-button type="button" (click)="openBulkInvoiceForm()" [disabled]="submitting() || loading()">
+        <mat-icon>library_add</mat-icon> Create multiple
+      </button>
       <button actions mat-flat-button color="primary" type="button" (click)="resetInvoiceForm()" [disabled]="submitting()">
         <mat-icon>add</mat-icon> New invoice
       </button>
@@ -122,6 +127,7 @@ import { PageHeaderComponent, StatusChipComponent, statusTone } from '../../shar
 })
 export class InvoiceListComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
+  private readonly dialog = inject(MatDialog);
   private readonly tenantService = inject(TenantService);
   private readonly tenancyService = inject(TenancyService);
   private readonly invoiceService = inject(InvoiceService);
@@ -174,6 +180,20 @@ export class InvoiceListComponent implements OnInit {
   resetInvoiceForm(): void {
     this.selectedTenantId.set('');
     this.form.reset({ ...this.defaults, billingMonth: this.currentMonth() });
+  }
+
+  openBulkInvoiceForm(): void {
+    const dialogRef = this.dialog.open(BulkInvoiceFormComponent, {
+      width: '560px',
+      maxWidth: '95vw',
+      disableClose: true
+    });
+
+    dialogRef.afterClosed().subscribe(issued => {
+      if (issued?.length) {
+        this.invoices.update(items => [...issued, ...items]);
+      }
+    });
   }
 
   saveInvoice(): void {
