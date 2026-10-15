@@ -184,15 +184,53 @@ interface TenantActivity {
                 <h2 class="text-xs font-semibold text-white">Announcements</h2>
                 <mat-icon class="!h-4 !w-4 !text-base text-slate-500">campaign</mat-icon>
               </div>
-              <div *ngIf="announcements().length; else noAnnouncements" class="mt-3 max-h-48 space-y-3 overflow-y-auto">
-                <article *ngFor="let announcement of announcements()" class="border-t border-slate-700 pt-3 first:border-0 first:pt-0">
-                  <div class="flex items-start justify-between gap-2">
-                    <h3 class="text-[11px] font-semibold text-slate-100">{{ announcement.title }}</h3>
-                    <time *ngIf="announcement.createdAt" class="shrink-0 text-[9px] text-slate-500">
-                      {{ announcement.createdAt | date:'MMM d' }}
-                    </time>
+              <div *ngIf="announcements().length; else noAnnouncements" class="mt-3 max-h-72 space-y-2 overflow-y-auto pr-1">
+                <article *ngFor="let announcement of announcements()" class="overflow-hidden rounded-lg border border-slate-700 bg-[#17223d]">
+                  <button type="button"
+                          class="w-full min-w-0 p-3 text-left transition hover:bg-slate-700/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-400"
+                          [attr.aria-expanded]="expandedAnnouncementId() === announcement.id"
+                          [attr.aria-controls]="'announcement-details-' + announcement.id"
+                          (click)="toggleAnnouncement(announcement.id)">
+                    <span class="flex min-w-0 items-start justify-between gap-3">
+                      <span class="min-w-0 flex-1">
+                        <span class="block truncate text-[11px] font-semibold text-slate-100">{{ announcement.title }}</span>
+                        <span class="mt-1 block text-[10px] leading-relaxed text-slate-400"
+                              [class.line-clamp-2]="expandedAnnouncementId() !== announcement.id">
+                          {{ announcement.message }}
+                        </span>
+                      </span>
+                      <span class="flex shrink-0 items-center gap-2">
+                        <time *ngIf="announcement.createdAt || announcement.sentAt"
+                              class="text-[9px] text-slate-500">
+                          {{ (announcement.sentAt || announcement.createdAt) | date:'MMM d' }}
+                        </time>
+                        <mat-icon class="!h-4 !w-4 !text-base text-slate-400">
+                          {{ expandedAnnouncementId() === announcement.id ? 'expand_less' : 'expand_more' }}
+                        </mat-icon>
+                      </span>
+                    </span>
+                  </button>
+                  <div *ngIf="expandedAnnouncementId() === announcement.id"
+                       [id]="'announcement-details-' + announcement.id"
+                       class="border-t border-slate-700 px-3 pb-3 pt-2">
+                    <p class="whitespace-pre-wrap break-words text-[11px] leading-relaxed text-slate-300">
+                      {{ announcement.message }}
+                    </p>
+                    <dl class="mt-3 grid grid-cols-1 gap-1 border-t border-slate-700 pt-2 text-[9px] sm:grid-cols-2">
+                      <div *ngIf="announcement.sentAt || announcement.createdAt" class="flex flex-wrap gap-x-1">
+                        <dt class="text-slate-500">Sent</dt>
+                        <dd class="text-slate-300">{{ (announcement.sentAt || announcement.createdAt) | date:'medium' }}</dd>
+                      </div>
+                      <div *ngIf="announcement.deliveredAt" class="flex flex-wrap gap-x-1">
+                        <dt class="text-slate-500">Delivered</dt>
+                        <dd class="text-slate-300">{{ announcement.deliveredAt | date:'medium' }}</dd>
+                      </div>
+                      <div *ngIf="announcement.status" class="flex flex-wrap gap-x-1">
+                        <dt class="text-slate-500">Status</dt>
+                        <dd class="text-slate-300">{{ announcement.status | titlecase }}</dd>
+                      </div>
+                    </dl>
                   </div>
-                  <p class="mt-1 whitespace-pre-wrap text-[10px] leading-relaxed text-slate-400">{{ announcement.message }}</p>
                 </article>
               </div>
               <ng-template #noAnnouncements>
@@ -216,6 +254,7 @@ export class TenantPortalComponent implements OnInit {
   readonly invoices = signal<TenantInvoice[]>([]);
   readonly unreadInvoiceNotifications = signal<TenantInvoiceNotification[]>([]);
   readonly announcements = signal<TenantAnnouncement[]>([]);
+  readonly expandedAnnouncementId = signal<string | null>(null);
   readonly payments = signal<TenantPayment[]>([]);
   readonly requests = signal<TenantMaintenanceRequest[]>([]);
   readonly tenancy = signal<TenantTenancy | null>(null);
@@ -282,6 +321,11 @@ export class TenantPortalComponent implements OnInit {
     ];
     return items.filter(item => item.date).sort((a, b) => b.date.localeCompare(a.date)).slice(0, 4);
   });
+
+  toggleAnnouncement(announcementId: string): void {
+    this.expandedAnnouncementId.update(current =>
+      current === announcementId ? null : announcementId);
+  }
 
   ngOnInit(): void {
     const tenantId = this.auth.currentUser()?.tenantId;

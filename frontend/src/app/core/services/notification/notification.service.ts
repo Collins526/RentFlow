@@ -9,6 +9,9 @@ export interface TenantAnnouncement {
   id: string;
   title: string;
   message: string;
+  status?: string;
+  sentAt?: string;
+  deliveredAt?: string;
   createdAt?: string;
 }
 

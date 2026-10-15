@@ -107,6 +107,28 @@ describe('TenantPortalComponent', () => {
     expect(depositLink?.getAttribute('href')).toContain('amount=35000');
   });
 
+  it('expands an announcement to show its complete details and collapses it on repeat click', () => {
+    const fixture = TestBed.createComponent(TenantPortalComponent);
+    fixture.detectChanges();
+    const page = fixture.nativeElement as HTMLElement;
+    const announcementButton = Array.from(page.querySelectorAll('button'))
+      .find(button => button.textContent?.includes('Water maintenance'))!;
+
+    expect(announcementButton.getAttribute('aria-expanded')).toBe('false');
+    announcementButton.click();
+    fixture.detectChanges();
+
+    expect(announcementButton.getAttribute('aria-expanded')).toBe('true');
+    expect(page.textContent).toContain('Water will be unavailable on Friday.');
+    expect(page.textContent).toContain('Sent');
+    expect(page.querySelector('#announcement-details-announcement-1')).toBeTruthy();
+
+    announcementButton.click();
+    fixture.detectChanges();
+    expect(announcementButton.getAttribute('aria-expanded')).toBe('false');
+    expect(page.querySelector('#announcement-details-announcement-1')).toBeNull();
+  });
+
   it('opens the rent payment form when there is no outstanding invoice', () => {
     const service = TestBed.inject(TenantPortalService);
     vi.spyOn(service, 'getInvoices').mockReturnValue(of({
