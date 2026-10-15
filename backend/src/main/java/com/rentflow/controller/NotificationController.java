@@ -2,6 +2,7 @@ package com.rentflow.controller;
 
 import com.rentflow.common.ApiResponse;
 import com.rentflow.dto.request.NotificationRequest;
+import com.rentflow.dto.request.TenantAnnouncementRequest;
 import com.rentflow.dto.response.NotificationResponse;
 import com.rentflow.service.NotificationService;
 import jakarta.validation.Valid;
@@ -35,6 +36,15 @@ public class NotificationController {
         return new ResponseEntity<>(ApiResponse.success(response, "Notification created"), HttpStatus.CREATED);
     }
 
+    @PostMapping("/announcements")
+    @PreAuthorize("hasRole('ORGANIZATION_OWNER')")
+    public ResponseEntity<ApiResponse<Integer>> announceToAllTenants(
+            @Valid @RequestBody TenantAnnouncementRequest request) {
+        int recipientCount = notificationService.announceToAllTenants(request);
+        return ResponseEntity.ok(ApiResponse.success(
+                recipientCount, "Announcement sent to " + recipientCount + " tenants"));
+    }
+
     @GetMapping
     @PreAuthorize(READ_ROLES)
     public ResponseEntity<ApiResponse<Page<NotificationResponse>>> listNotifications(
@@ -45,6 +55,41 @@ public class NotificationController {
             Pageable pageable) {
         Page<NotificationResponse> page = notificationService.listNotifications(tenantId, tenancyId, unitId, status, pageable);
         return ResponseEntity.ok(ApiResponse.success(page, "Notifications fetched"));
+    }
+
+    @GetMapping("/my/unread-invoices")
+    @PreAuthorize("hasRole('TENANT')")
+    public ResponseEntity<ApiResponse<Page<NotificationResponse>>> listMyUnreadInvoiceNotifications(Pageable pageable) {
+        Page<NotificationResponse> response = notificationService.listMyUnreadInvoiceNotifications(pageable);
+        return ResponseEntity.ok(ApiResponse.success(response, "Unread invoice notifications fetched"));
+    }
+
+    @GetMapping("/my/announcements")
+    @PreAuthorize("hasRole('TENANT')")
+    public ResponseEntity<ApiResponse<Page<NotificationResponse>>> listMyAnnouncements(Pageable pageable) {
+        Page<NotificationResponse> response = notificationService.listMyAnnouncements(pageable);
+        return ResponseEntity.ok(ApiResponse.success(response, "Announcements fetched"));
+    }
+
+    @GetMapping("/my/unread-count")
+    @PreAuthorize("hasRole('TENANT')")
+    public ResponseEntity<ApiResponse<Long>> getMyUnreadNotificationCount() {
+        long count = notificationService.countMyUnreadNotifications();
+        return ResponseEntity.ok(ApiResponse.success(count, "Unread notification count fetched"));
+    }
+
+    @PostMapping("/my/announcements/read")
+    @PreAuthorize("hasRole('TENANT')")
+    public ResponseEntity<ApiResponse<Void>> markMyAnnouncementsRead() {
+        notificationService.markMyAnnouncementsRead();
+        return ResponseEntity.ok(ApiResponse.success(null, "Announcements marked as read"));
+    }
+
+    @PostMapping("/my/invoices/{invoiceId}/read")
+    @PreAuthorize("hasRole('TENANT')")
+    public ResponseEntity<ApiResponse<Void>> markMyInvoiceNotificationsRead(@PathVariable UUID invoiceId) {
+        notificationService.markMyInvoiceNotificationsRead(invoiceId);
+        return ResponseEntity.ok(ApiResponse.success(null, "Invoice notifications marked as read"));
     }
 
     @GetMapping("/{id}")

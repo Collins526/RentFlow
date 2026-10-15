@@ -6,11 +6,17 @@ import { MatIconModule } from '@angular/material/icon';
 import { AuthService } from '../../core/services/auth.service';
 import {
   TenantInvoice,
+  TenantInvoiceNotification,
   TenantMaintenanceRequest,
   TenantPayment,
   TenantPortalService,
   TenantTenancy
 } from '../../core/services/tenant/tenant-portal.service';
+import {
+  NotificationService,
+  TenantAnnouncement
+} from '../../core/services/notification/notification.service';
+import { ToastService } from '../../core/services/toast.service';
 
 interface TenantActivity {
   id: string;
@@ -46,6 +52,20 @@ interface TenantActivity {
             Active tenancy
           </p>
         </div>
+
+        <section *ngIf="unreadInvoiceNotifications().length" class="space-y-2" aria-label="Unread invoices">
+          <a *ngFor="let notification of unreadInvoiceNotifications()"
+             routerLink="/tenant/invoices"
+             [queryParams]="{ invoiceId: notification.invoiceId }"
+             class="flex items-start gap-3 rounded-xl border border-amber-400/30 bg-amber-400/10 p-3 transition hover:border-amber-300/60">
+            <mat-icon class="!h-5 !w-5 !text-lg text-amber-300">notifications_active</mat-icon>
+            <span class="min-w-0 flex-1">
+              <span class="block text-xs font-semibold text-amber-100">{{ notification.title }}</span>
+              <span class="mt-0.5 block text-[11px] text-amber-100/75">{{ notification.message }}</span>
+            </span>
+            <span class="shrink-0 text-[10px] font-semibold text-amber-200">View invoice</span>
+          </a>
+        </section>
 
         <section class="grid gap-3 md:grid-cols-[1.2fr_1fr]">
           <article class="rounded-xl border border-indigo-400/35 bg-[#171f48] p-4 shadow-sm">
@@ -161,10 +181,23 @@ interface TenantActivity {
 
             <article class="rounded-xl border border-slate-700 bg-[#111a31] p-4">
               <div class="flex items-center justify-between">
-                <h2 class="text-xs font-semibold text-white">Notices</h2>
+                <h2 class="text-xs font-semibold text-white">Announcements</h2>
                 <mat-icon class="!h-4 !w-4 !text-base text-slate-500">campaign</mat-icon>
               </div>
-              <p class="mt-3 text-[10px] leading-relaxed text-slate-400">No new notices. Your property manager can share building updates here.</p>
+              <div *ngIf="announcements().length; else noAnnouncements" class="mt-3 max-h-48 space-y-3 overflow-y-auto">
+                <article *ngFor="let announcement of announcements()" class="border-t border-slate-700 pt-3 first:border-0 first:pt-0">
+                  <div class="flex items-start justify-between gap-2">
+                    <h3 class="text-[11px] font-semibold text-slate-100">{{ announcement.title }}</h3>
+                    <time *ngIf="announcement.createdAt" class="shrink-0 text-[9px] text-slate-500">
+                      {{ announcement.createdAt | date:'MMM d' }}
+                    </time>
+                  </div>
+                  <p class="mt-1 whitespace-pre-wrap text-[10px] leading-relaxed text-slate-400">{{ announcement.message }}</p>
+                </article>
+              </div>
+              <ng-template #noAnnouncements>
+                <p class="mt-3 text-[10px] leading-relaxed text-slate-400">No announcements yet. Your property manager can share building updates here.</p>
+              </ng-template>
             </article>
           </div>
         </section>
@@ -175,10 +208,14 @@ interface TenantActivity {
 export class TenantPortalComponent implements OnInit {
   protected readonly auth = inject(AuthService);
   private readonly service = inject(TenantPortalService);
+  private readonly notificationService = inject(NotificationService);
+  private readonly toast = inject(ToastService);
 
   readonly loading = signal(true);
   readonly error = signal('');
   readonly invoices = signal<TenantInvoice[]>([]);
+  readonly unreadInvoiceNotifications = signal<TenantInvoiceNotification[]>([]);
+  readonly announcements = signal<TenantAnnouncement[]>([]);
   readonly payments = signal<TenantPayment[]>([]);
   readonly requests = signal<TenantMaintenanceRequest[]>([]);
   readonly tenancy = signal<TenantTenancy | null>(null);
@@ -256,12 +293,21 @@ export class TenantPortalComponent implements OnInit {
 
     forkJoin({
       invoices: this.service.getInvoices(tenantId, 0, 100),
+      unreadInvoiceNotifications: this.service.getUnreadInvoiceNotifications(),
+      announcements: this.notificationService.getMyAnnouncements(),
       payments: this.service.getPayments(tenantId, 0, 100),
       requests: this.service.getMaintenanceRequests(tenantId, 0, 100),
       tenancy: this.service.getMyActiveTenancy()
     }).subscribe({
       next: response => {
         this.invoices.set(response.invoices.data?.content ?? []);
+        this.unreadInvoiceNotifications.set(response.unreadInvoiceNotifications.data?.content ?? []);
+        this.announcements.set(response.announcements.data?.content ?? []);
+        if ((response.announcements.data?.content?.length ?? 0) > 0) {
+          this.notificationService.markMyAnnouncementsRead().subscribe({
+            error: error => this.toast.apiError(error, 'Could not mark announcements as read.')
+          });
+        }
         this.payments.set(response.payments.data?.content ?? []);
         this.requests.set(response.requests.data?.content ?? []);
         this.tenancy.set(response.tenancy.data ?? null);

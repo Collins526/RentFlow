@@ -5,7 +5,9 @@ import { BreakpointObserver, BreakpointState } from '@angular/cdk/layout';
 import { of } from 'rxjs';
 import { LayoutComponent } from './layout.component';
 import { AuthService } from '../core/services/auth.service';
+import { NotificationService } from '../core/services/notification/notification.service';
 import { Role, RoleName } from '../core/auth/roles';
+import { signal } from '@angular/core';
 
 /** Renders the shell at a given viewport class for an organization owner. */
 function renderLayout(handset: boolean) {
@@ -25,11 +27,19 @@ function renderLayout(handset: boolean) {
         useValue: {
           hasAnyRole: (allowed: readonly RoleName[]) =>
             allowed.length === 0 || allowed.includes(Role.OrganizationOwner),
+          hasRole: (role: RoleName) => role === Role.OrganizationOwner,
           initials: () => 'CK',
           displayName: () => 'Collins Kibet',
           primaryRoleLabel: () => 'Organization Owner',
           currentUser: () => ({ email: 'owner@testorg.com' }),
           logout: () => {}
+        }
+      },
+      {
+        provide: NotificationService,
+        useValue: {
+          unreadCount: signal(null),
+          refreshUnreadCount: () => {}
         }
       }
     ]

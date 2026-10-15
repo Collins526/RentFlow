@@ -3,15 +3,19 @@ package com.rentflow.service.impl;
 import com.rentflow.dto.request.RentInvoiceRequest;
 import com.rentflow.dto.response.RentInvoiceResponse;
 import com.rentflow.entity.RentInvoice;
+import com.rentflow.entity.Notification;
 import com.rentflow.entity.Tenant;
 import com.rentflow.entity.Unit;
 import com.rentflow.entity.enums.InvoiceStatus;
+import com.rentflow.entity.enums.NotificationChannel;
+import com.rentflow.entity.enums.NotificationStatus;
 import com.rentflow.exception.BadRequestException;
 import com.rentflow.exception.ResourceNotFoundException;
 import com.rentflow.exception.UnauthorizedException;
 import com.rentflow.mapper.RentInvoiceMapper;
 import com.rentflow.repository.RentInvoiceRepository;
 import com.rentflow.repository.PaymentRepository;
+import com.rentflow.repository.NotificationRepository;
 import com.rentflow.repository.TenantRepository;
 import com.rentflow.repository.UnitRepository;
 import com.rentflow.security.SecurityUtils;
@@ -24,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Service
@@ -32,6 +37,7 @@ public class RentBillingServiceImpl implements RentBillingService {
 
     private final RentInvoiceRepository rentInvoiceRepository;
     private final PaymentRepository paymentRepository;
+    private final NotificationRepository notificationRepository;
     private final TenantRepository tenantRepository;
     private final UnitRepository unitRepository;
 
@@ -113,6 +119,21 @@ public class RentBillingServiceImpl implements RentBillingService {
 
         invoice.setStatus(InvoiceStatus.ISSUED);
         RentInvoice saved = rentInvoiceRepository.save(invoice);
+
+        LocalDateTime issuedAt = LocalDateTime.now();
+        notificationRepository.save(Notification.builder()
+                .organizationId(organizationId)
+                .tenantId(saved.getTenantId())
+                .tenancyId(saved.getTenancyId())
+                .unitId(saved.getUnitId())
+                .invoiceId(saved.getId())
+                .title("New rent invoice")
+                .message("A rent invoice for KES " + saved.getAmount() + " is ready to view.")
+                .channel(NotificationChannel.IN_APP)
+                .status(NotificationStatus.DELIVERED)
+                .sentAt(issuedAt)
+                .deliveredAt(issuedAt)
+                .build());
 
         Tenant tenant = tenantRepository.findById(saved.getTenantId()).orElse(null);
         Unit unit = unitRepository.findById(saved.getUnitId()).orElse(null);

@@ -1,14 +1,18 @@
-import { Component, inject, input, output } from '@angular/core';
+import { Component, DestroyRef, inject, input, OnInit, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { NavigationEnd, Router, RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatBadgeModule } from '@angular/material/badge';
 import { AuthService } from '../core/services/auth.service';
+import { NotificationService } from '../core/services/notification/notification.service';
 import { BreadcrumbsComponent } from './breadcrumbs.component';
 import { Role } from '../core/auth/roles';
+import { filter } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 /**
  * Top bar: sidebar toggle, breadcrumbs and the user profile menu.
@@ -24,6 +28,7 @@ import { Role } from '../core/auth/roles';
     MatMenuModule,
     MatDividerModule,
     MatTooltipModule,
+    MatBadgeModule,
     BreadcrumbsComponent
   ],
   template: `
@@ -44,13 +49,17 @@ import { Role } from '../core/auth/roles';
       <app-breadcrumbs class="hidden sm:block"></app-breadcrumbs>
 
       <div class="ml-auto flex items-center gap-1">
-        <button mat-icon-button
+        <a *ngIf="isTenant()" mat-icon-button
+                routerLink="/tenant"
                 class="!hidden sm:!inline-flex"
-                matTooltip="Notifications are coming in a later module"
-                aria-label="Notifications"
-                disabled>
+                matTooltip="Notifications"
+                [matBadge]="notificationService.unreadCount() ?? 0"
+                [matBadgeHidden]="!notificationService.unreadCount()"
+                matBadgeColor="warn"
+                matBadgeSize="small"
+                [attr.aria-label]="'Notifications, ' + (notificationService.unreadCount() ?? 0) + ' unread'">
           <mat-icon>notifications_none</mat-icon>
-        </button>
+        </a>
 
         <button mat-button [matMenuTriggerFor]="profileMenu" class="!px-2" aria-label="Account menu">
           <div class="flex items-center gap-2">
@@ -88,11 +97,24 @@ import { Role } from '../core/auth/roles';
     </header>
   `
 })
-export class TopbarComponent {
+export class TopbarComponent implements OnInit {
   protected auth = inject(AuthService);
+  protected notificationService = inject(NotificationService);
+  private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
 
   sidebarCollapsed = input(false);
   toggleSidebar = output<void>();
+
+  ngOnInit(): void {
+    if (this.isTenant()) {
+      this.notificationService.refreshUnreadCount();
+      this.router.events.pipe(
+        filter(event => event instanceof NavigationEnd),
+        takeUntilDestroyed(this.destroyRef)
+      ).subscribe(() => this.notificationService.refreshUnreadCount());
+    }
+  }
 
   protected canManageOrganization(): boolean {
     return this.auth.hasRole(Role.OrganizationOwner) && !this.auth.hasRole(Role.PlatformAdmin);

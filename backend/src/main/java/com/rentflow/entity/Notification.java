@@ -38,6 +38,13 @@ public class Notification extends BaseEntity {
     @Column(name = "unit_id")
     private UUID unitId;
 
+    @Column(name = "invoice_id")
+    private UUID invoiceId;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private boolean announcement = false;
+
     @Column(nullable = false, length = 150)
     private String title;
 

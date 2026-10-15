@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 
 
 import java.util.Optional;
+import java.util.List;
 import java.util.UUID;
 import java.time.Instant;
 
@@ -19,6 +20,8 @@ public interface TenantRepository extends JpaRepository<Tenant, UUID> {
     Page<Tenant> findByOrganizationId(UUID organizationId, Pageable pageable);
     
     Optional<Tenant> findByIdAndOrganizationId(UUID id, UUID organizationId);
+
+    List<Tenant> findByOrganizationIdAndDeletedAtIsNull(UUID organizationId);
     
     boolean existsByEmailAndOrganizationId(String email, UUID organizationId);
 

@@ -18,6 +18,7 @@ public class NotificationMapper {
                 .tenantId(entity.getTenantId())
                 .tenancyId(entity.getTenancyId())
                 .unitId(entity.getUnitId())
+                .invoiceId(entity.getInvoiceId())
                 .title(entity.getTitle())
                 .message(entity.getMessage())
                 .channel(entity.getChannel())

@@ -19,6 +19,14 @@ export interface TenantInvoice {
   createdAt?: string;
 }
 
+export interface TenantInvoiceNotification {
+  id: string;
+  invoiceId: string;
+  title: string;
+  message: string;
+  createdAt?: string;
+}
+
 export interface TenantPayment {
   id: string;
   tenantId: string;
@@ -109,6 +117,25 @@ export class TenantPortalService {
       .set('size', size.toString());
 
     return this.http.get<ApiResponse<Page<TenantInvoice>>>(`${this.apiUrl}/invoices`, { params });
+  }
+
+  getInvoiceById(invoiceId: string): Observable<ApiResponse<TenantInvoice>> {
+    return this.http.get<ApiResponse<TenantInvoice>>(`${this.apiUrl}/invoices/${invoiceId}`);
+  }
+
+  getUnreadInvoiceNotifications(page = 0, size = 100): Observable<ApiResponse<Page<TenantInvoiceNotification>>> {
+    const params = new HttpParams().set('page', page.toString()).set('size', size.toString());
+    return this.http.get<ApiResponse<Page<TenantInvoiceNotification>>>(
+      `${this.apiUrl}/notifications/my/unread-invoices`,
+      { params }
+    );
+  }
+
+  markInvoiceNotificationRead(invoiceId: string): Observable<ApiResponse<void>> {
+    return this.http.post<ApiResponse<void>>(
+      `${this.apiUrl}/notifications/my/invoices/${invoiceId}/read`,
+      {}
+    );
   }
 
   getPayments(tenantId: string, page = 0, size = 10): Observable<ApiResponse<Page<TenantPayment>>> {

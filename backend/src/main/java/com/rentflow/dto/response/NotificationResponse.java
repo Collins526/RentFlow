@@ -23,6 +23,7 @@ public class NotificationResponse {
     private UUID tenantId;
     private UUID tenancyId;
     private UUID unitId;
+    private UUID invoiceId;
     private String title;
     private String message;
     private NotificationChannel channel;

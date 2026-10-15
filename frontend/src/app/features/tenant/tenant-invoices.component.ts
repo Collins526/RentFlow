@@ -2,9 +2,15 @@ import { CommonModule, CurrencyPipe, DatePipe } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { forkJoin } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
-import { TenantInvoice, TenantPortalService } from '../../core/services/tenant/tenant-portal.service';
+import {
+  TenantInvoice,
+  TenantInvoiceNotification,
+  TenantPortalService
+} from '../../core/services/tenant/tenant-portal.service';
+import { NotificationService } from '../../core/services/notification/notification.service';
 
 @Component({
   selector: 'app-tenant-invoices',
@@ -31,6 +37,10 @@ import { TenantInvoice, TenantPortalService } from '../../core/services/tenant/t
         {{ error() }}
       </div>
 
+      <div *ngIf="notificationError()" class="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800" role="alert">
+        {{ notificationError() }}
+      </div>
+
       <div *ngIf="!loading() && !error()" class="space-y-3">
         <div *ngIf="items().length === 0" class="rounded-2xl border border-dashed border-slate-300 bg-white p-6 text-slate-500">
           No invoices are available for your account yet.
@@ -42,6 +52,7 @@ import { TenantInvoice, TenantPortalService } from '../../core/services/tenant/t
             <div>
               <p class="text-sm text-slate-500">Invoice #{{ item.id.slice(0, 8) }}</p>
               <h2 class="text-lg font-semibold text-slate-900">{{ item.tenantName ?? 'Rent invoice' }}</h2>
+              <span *ngIf="isInvoiceUnread(item.id)" class="mt-1 inline-flex rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-800">New invoice</span>
             </div>
             <div class="text-right">
               <p class="text-xl font-bold text-slate-900">{{ item.amount | currency:'KES ':'symbol':'1.0-2' }}</p>
@@ -80,17 +91,40 @@ import { TenantInvoice, TenantPortalService } from '../../core/services/tenant/t
 export class TenantInvoicesComponent implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly service = inject(TenantPortalService);
+  private readonly notificationService = inject(NotificationService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
 
   items = signal<TenantInvoice[]>([]);
+  unreadInvoiceNotifications = signal<TenantInvoiceNotification[]>([]);
   loading = signal(true);
   error = signal<string | null>(null);
+  notificationError = signal<string | null>(null);
   expandedInvoiceId = signal<string | null>(null);
 
   invoiceStatusLabel(status: string): string { return status === 'PAID' ? 'SETTLED' : status; }
 
   toggleDetails(invoiceId: string): void {
-    this.expandedInvoiceId.update(current => current === invoiceId ? null : invoiceId);
+    const opening = this.expandedInvoiceId() !== invoiceId;
+    this.expandedInvoiceId.set(opening ? invoiceId : null);
+    if (opening) this.markInvoiceOpened(invoiceId);
+  }
+
+  isInvoiceUnread(invoiceId: string): boolean {
+    return this.unreadInvoiceNotifications().some(notification => notification.invoiceId === invoiceId);
+  }
+
+  private markInvoiceOpened(invoiceId: string): void {
+    if (!this.isInvoiceUnread(invoiceId)) return;
+
+    this.service.markInvoiceNotificationRead(invoiceId).subscribe({
+      next: () => {
+        this.unreadInvoiceNotifications.update(notifications =>
+          notifications.filter(notification => notification.invoiceId !== invoiceId));
+        this.notificationService.refreshUnreadCount();
+      },
+      error: () => this.notificationError.set('The invoice is open, but its notification could not be marked as read. Please try again.')
+    });
   }
 
   payInvoice(invoice: TenantInvoice): void {
@@ -112,9 +146,30 @@ export class TenantInvoicesComponent implements OnInit {
       return;
     }
 
-    this.service.getInvoices(tenantId, 0, 10).subscribe({
-      next: res => {
-        this.items.set(res.data?.content ?? []);
+    forkJoin({
+      invoices: this.service.getInvoices(tenantId, 0, 10),
+      notifications: this.service.getUnreadInvoiceNotifications()
+    }).subscribe({
+      next: response => {
+        const invoices = response.invoices.data?.content ?? [];
+        this.items.set(invoices);
+        this.unreadInvoiceNotifications.set(response.notifications.data?.content ?? []);
+        const requestedInvoiceId = this.route.snapshot.queryParamMap.get('invoiceId');
+        const requestedInvoice = invoices.find(invoice => invoice.id === requestedInvoiceId);
+        if (requestedInvoice) {
+          this.expandedInvoiceId.set(requestedInvoice.id);
+          this.markInvoiceOpened(requestedInvoice.id);
+        } else if (requestedInvoiceId && this.isInvoiceUnread(requestedInvoiceId)) {
+          this.service.getInvoiceById(requestedInvoiceId).subscribe({
+            next: result => {
+              if (!result.data) return;
+              this.items.update(current => [result.data!, ...current]);
+              this.expandedInvoiceId.set(result.data.id);
+              this.markInvoiceOpened(result.data.id);
+            },
+            error: () => this.notificationError.set('Unable to open the invoice from its notification. Please try again.')
+          });
+        }
         this.loading.set(false);
       },
       error: () => {

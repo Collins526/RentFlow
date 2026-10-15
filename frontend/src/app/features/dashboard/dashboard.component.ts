@@ -3,12 +3,15 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
+import { MatDialog } from '@angular/material/dialog';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { DashboardService, DashboardSummary } from '../../core/services/dashboard/dashboard.service';
 import { AuthService } from '../../core/services/auth.service';
+import { Role } from '../../core/auth/roles';
 import { Tenancy, TenancyStatus } from '../../core/models/tenancy.model';
 import { TenancyService } from '../../core/services/tenancy/tenancy.service';
 import { resolveApiMessage } from '../../core/services/toast.service';
+import { AnnouncementDialogComponent } from './announcement-dialog.component';
 import {
   ErrorStateComponent,
   PageHeaderComponent,
@@ -50,6 +53,10 @@ interface MetricTile {
         <mat-icon>person_add</mat-icon>
         Add tenant
       </a>
+      <button *ngIf="isOrganizationOwner()" actions mat-stroked-button (click)="openAnnouncementDialog()">
+        <mat-icon>campaign</mat-icon>
+        Send announcement
+      </button>
       <button actions mat-stroked-button (click)="load()" [disabled]="isLoading()">
         <mat-icon>refresh</mat-icon>
         Refresh
@@ -448,6 +455,7 @@ export class DashboardComponent implements OnInit {
   private tenancyService = inject(TenancyService);
   private auth = inject(AuthService);
   private router = inject(Router);
+  private dialog = inject(MatDialog);
 
   summary = signal<DashboardSummary | null>(null);
   isLoading = signal(true);
@@ -456,6 +464,7 @@ export class DashboardComponent implements OnInit {
   isTenanciesLoading = signal(false);
 
   isPlatformAdmin = computed(() => this.auth.hasRole('PLATFORM_ADMIN'));
+  isOrganizationOwner = computed(() => this.auth.hasRole(Role.OrganizationOwner));
 
   /** Bound into the error state, which takes a callback rather than an output. */
   reload = () => this.load();
@@ -596,6 +605,13 @@ export class DashboardComponent implements OnInit {
   openOrganizationProperties(organizationId: string): void {
     window.scrollTo({ top: 0, behavior: 'smooth' });
     this.router.navigate(['/properties'], { queryParams: { organizationId } });
+  }
+
+  openAnnouncementDialog(): void {
+    this.dialog.open(AnnouncementDialogComponent, {
+      width: 'min(540px, calc(100vw - 32px))',
+      maxWidth: '100vw'
+    });
   }
 
   load(): void {

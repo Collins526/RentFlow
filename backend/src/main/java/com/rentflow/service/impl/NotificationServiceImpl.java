@@ -1,8 +1,11 @@
 package com.rentflow.service.impl;
 
 import com.rentflow.dto.request.NotificationRequest;
+import com.rentflow.dto.request.TenantAnnouncementRequest;
 import com.rentflow.dto.response.NotificationResponse;
 import com.rentflow.entity.Notification;
+import com.rentflow.entity.Tenant;
+import com.rentflow.entity.enums.NotificationChannel;
 import com.rentflow.entity.enums.NotificationStatus;
 import com.rentflow.exception.ResourceNotFoundException;
 import com.rentflow.mapper.NotificationMapper;
@@ -18,6 +21,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -63,6 +68,33 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
+    public int announceToAllTenants(TenantAnnouncementRequest request) {
+        UUID organizationId = SecurityUtils.getCurrentUserOrganizationId();
+        List<Tenant> tenants = tenantRepository.findByOrganizationIdAndDeletedAtIsNull(organizationId);
+        if (tenants.isEmpty()) {
+            return 0;
+        }
+
+        LocalDateTime sentAt = LocalDateTime.now();
+        List<Notification> announcements = tenants.stream()
+                .map(tenant -> Notification.builder()
+                        .organizationId(organizationId)
+                        .tenantId(tenant.getId())
+                        .announcement(true)
+                        .title(request.getTitle())
+                        .message(request.getMessage())
+                        .channel(NotificationChannel.IN_APP)
+                        .status(NotificationStatus.DELIVERED)
+                        .sentAt(sentAt)
+                        .deliveredAt(sentAt)
+                        .build())
+                .toList();
+
+        notificationRepository.saveAll(announcements);
+        return announcements.size();
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public Page<NotificationResponse> listNotifications(UUID tenantId, UUID tenancyId, UUID unitId, String status, Pageable pageable) {
         UUID organizationId = SecurityUtils.getCurrentUserOrganizationId();
@@ -82,6 +114,85 @@ public class NotificationServiceImpl implements NotificationService {
         }
 
         return page.map(notificationMapper::toResponse);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<NotificationResponse> listMyUnreadInvoiceNotifications(Pageable pageable) {
+        UUID organizationId = SecurityUtils.getCurrentUserOrganizationId();
+        UUID tenantId = SecurityUtils.getCurrentUserTenantIdOrNull();
+        if (tenantId == null) {
+            throw new ResourceNotFoundException("Tenant profile not found");
+        }
+
+        return notificationRepository
+                .findByOrganizationIdAndTenantIdAndChannelAndInvoiceIdIsNotNullAndReadAtIsNullAndDeletedAtIsNull(
+                        organizationId, tenantId, NotificationChannel.IN_APP, pageable)
+                .map(notificationMapper::toResponse);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<NotificationResponse> listMyAnnouncements(Pageable pageable) {
+        UUID organizationId = SecurityUtils.getCurrentUserOrganizationId();
+        UUID tenantId = SecurityUtils.getCurrentUserTenantIdOrNull();
+        if (tenantId == null) {
+            throw new ResourceNotFoundException("Tenant profile not found");
+        }
+
+        return notificationRepository
+                .findByOrganizationIdAndTenantIdAndAnnouncementTrueAndDeletedAtIsNull(
+                        organizationId, tenantId, pageable)
+                .map(notificationMapper::toResponse);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public long countMyUnreadNotifications() {
+        UUID organizationId = SecurityUtils.getCurrentUserOrganizationId();
+        UUID tenantId = SecurityUtils.getCurrentUserTenantIdOrNull();
+        if (tenantId == null) {
+            throw new ResourceNotFoundException("Tenant profile not found");
+        }
+
+        long unreadInvoices = notificationRepository
+                .countByOrganizationIdAndTenantIdAndChannelAndInvoiceIdIsNotNullAndReadAtIsNullAndDeletedAtIsNull(
+                        organizationId, tenantId, NotificationChannel.IN_APP);
+        long unreadAnnouncements = notificationRepository
+                .countByOrganizationIdAndTenantIdAndAnnouncementTrueAndReadAtIsNullAndDeletedAtIsNull(
+                        organizationId, tenantId);
+        return unreadInvoices + unreadAnnouncements;
+    }
+
+    @Override
+    public void markMyAnnouncementsRead() {
+        UUID organizationId = SecurityUtils.getCurrentUserOrganizationId();
+        UUID tenantId = SecurityUtils.getCurrentUserTenantIdOrNull();
+        if (tenantId == null) {
+            throw new ResourceNotFoundException("Tenant profile not found");
+        }
+
+        notificationRepository.markAnnouncementsRead(
+                organizationId, tenantId, NotificationStatus.READ, java.time.LocalDateTime.now());
+    }
+
+    @Override
+    public void markMyInvoiceNotificationsRead(UUID invoiceId) {
+        UUID organizationId = SecurityUtils.getCurrentUserOrganizationId();
+        UUID tenantId = SecurityUtils.getCurrentUserTenantIdOrNull();
+        if (tenantId == null) {
+            throw new ResourceNotFoundException("Tenant profile not found");
+        }
+
+        notificationRepository
+                .findByOrganizationIdAndTenantIdAndInvoiceIdAndDeletedAtIsNull(organizationId, tenantId, invoiceId)
+                .stream()
+                .filter(notification -> notification.getChannel() == NotificationChannel.IN_APP)
+                .filter(notification -> notification.getReadAt() == null)
+                .forEach(notification -> {
+                    notification.setStatus(NotificationStatus.READ);
+                    notification.setReadAt(java.time.LocalDateTime.now());
+                });
     }
 
     @Override
