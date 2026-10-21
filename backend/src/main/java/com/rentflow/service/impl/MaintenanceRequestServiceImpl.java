@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.UUID;
 
 @Service
@@ -96,6 +97,26 @@ public class MaintenanceRequestServiceImpl implements MaintenanceRequestService 
     public void cancelMaintenanceRequest(UUID id) {
         com.rentflow.entity.MaintenanceRequest entity = getTenantRequestedRequest(id);
         entity.setStatus(MaintenanceStatus.CANCELLED);
+        maintenanceRequestRepository.save(entity);
+    }
+
+    @Override
+    public void completeMaintenanceRequest(UUID id) {
+        UUID organizationId = SecurityUtils.getCurrentUserOrganizationId();
+        com.rentflow.entity.MaintenanceRequest entity = maintenanceRequestRepository
+                .findByIdAndOrganizationIdAndDeletedAtIsNull(id, organizationId)
+                .orElseThrow(() -> new ResourceNotFoundException("Maintenance request not found"));
+
+        UUID currentTenantId = SecurityUtils.getCurrentUserTenantIdOrNull();
+        if (currentTenantId == null || !currentTenantId.equals(entity.getTenantId())) {
+            throw new UnauthorizedException("Tenant can only modify their own maintenance requests");
+        }
+        if (entity.getStatus() == MaintenanceStatus.COMPLETED || entity.getStatus() == MaintenanceStatus.CANCELLED) {
+            throw new UnauthorizedException("Only open maintenance requests can be marked as resolved");
+        }
+
+        entity.setStatus(MaintenanceStatus.COMPLETED);
+        entity.setCompletedDate(LocalDate.now());
         maintenanceRequestRepository.save(entity);
     }
 

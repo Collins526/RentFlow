@@ -111,14 +111,20 @@ import { CreateTenantMaintenanceRequest, TenantMaintenanceRequest, TenantPortalS
           <div class="mt-3 text-sm text-slate-500">
             Submitted {{ (item.requestedDate || item.id) | date:'mediumDate' }}
           </div>
-          <div *ngIf="item.status === 'REQUESTED'" class="mt-4 flex justify-end gap-2">
-            <button mat-stroked-button type="button" (click)="editRequest(item)">
-              <mat-icon>edit</mat-icon>
-              Edit
-            </button>
-            <button mat-stroked-button color="warn" type="button" [disabled]="cancellingId() === item.id" (click)="cancelRequest(item)">
-              <mat-icon>close</mat-icon>
-              {{ cancellingId() === item.id ? 'Cancelling…' : 'Cancel request' }}
+          <div *ngIf="item.status !== 'COMPLETED' && item.status !== 'CANCELLED'" class="mt-4 flex flex-wrap justify-end gap-2">
+            <ng-container *ngIf="item.status === 'REQUESTED'">
+              <button mat-stroked-button type="button" (click)="editRequest(item)">
+                <mat-icon>edit</mat-icon>
+                Edit
+              </button>
+              <button mat-stroked-button color="warn" type="button" [disabled]="cancellingId() === item.id" (click)="cancelRequest(item)">
+                <mat-icon>close</mat-icon>
+                {{ cancellingId() === item.id ? 'Cancelling…' : 'Cancel request' }}
+              </button>
+            </ng-container>
+            <button mat-stroked-button color="primary" type="button" [disabled]="completingId() === item.id" (click)="completeRequest(item)">
+              <mat-icon>check_circle</mat-icon>
+              {{ completingId() === item.id ? 'Updating…' : 'Mark resolved' }}
             </button>
           </div>
         </div>
@@ -137,6 +143,7 @@ export class TenantRequestsComponent implements OnInit {
   submitting = signal(false);
   editingId = signal<string | null>(null);
   cancellingId = signal<string | null>(null);
+  completingId = signal<string | null>(null);
   submitMessage = signal<string | null>(null);
   submitSuccess = signal(false);
 
@@ -277,6 +284,25 @@ export class TenantRequestsComponent implements OnInit {
         this.cancellingId.set(null);
         this.submitSuccess.set(false);
         this.submitMessage.set(err?.error?.message || 'Unable to cancel the maintenance request right now.');
+      }
+    });
+  }
+
+  completeRequest(request: TenantMaintenanceRequest): void {
+    if (!window.confirm('Mark this maintenance request as resolved?')) {
+      return;
+    }
+
+    this.completingId.set(request.id);
+    this.service.completeMaintenanceRequest(request.id).subscribe({
+      next: () => {
+        this.completingId.set(null);
+        this.loadRequests();
+      },
+      error: err => {
+        this.completingId.set(null);
+        this.submitSuccess.set(false);
+        this.submitMessage.set(err?.error?.message || 'Unable to mark the maintenance request as resolved right now.');
       }
     });
   }

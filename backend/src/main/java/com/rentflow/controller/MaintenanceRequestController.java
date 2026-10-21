@@ -50,6 +50,13 @@ public class MaintenanceRequestController {
         return ResponseEntity.ok(ApiResponse.success(null, "Maintenance request cancelled"));
     }
 
+    @PostMapping("/{id}/complete")
+    @PreAuthorize("hasRole('TENANT')")
+    public ResponseEntity<ApiResponse<Void>> completeMaintenanceRequest(@PathVariable UUID id) {
+        maintenanceRequestService.completeMaintenanceRequest(id);
+        return ResponseEntity.ok(ApiResponse.success(null, "Maintenance request marked as resolved"));
+    }
+
     @GetMapping
     @PreAuthorize(READ_ROLES)
     public ResponseEntity<ApiResponse<Page<MaintenanceRequestResponse>>> listMaintenanceRequests(
