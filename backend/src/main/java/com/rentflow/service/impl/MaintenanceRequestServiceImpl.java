@@ -198,9 +198,14 @@ public class MaintenanceRequestServiceImpl implements MaintenanceRequestService 
 
     @Override
     public void deleteMaintenanceRequest(UUID id) {
-        UUID organizationId = SecurityUtils.getCurrentUserOrganizationId();
-        com.rentflow.entity.MaintenanceRequest entity = maintenanceRequestRepository.findByIdAndOrganizationIdAndDeletedAtIsNull(id, organizationId)
-                .orElseThrow(() -> new ResourceNotFoundException("Maintenance request not found"));
+        com.rentflow.entity.MaintenanceRequest entity;
+        if (SecurityUtils.hasRole("TENANT")) {
+            entity = getTenantRequestedRequest(id);
+        } else {
+            UUID organizationId = SecurityUtils.getCurrentUserOrganizationId();
+            entity = maintenanceRequestRepository.findByIdAndOrganizationIdAndDeletedAtIsNull(id, organizationId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Maintenance request not found"));
+        }
 
         entity.setDeletedAt(Instant.now());
         maintenanceRequestRepository.save(entity);

@@ -67,6 +67,15 @@ import { PageHeaderComponent, StatusChipComponent, statusTone } from '../../shar
           <mat-icon>attach_file</mat-icon> View attachment{{ request.attachmentName ? ': ' + request.attachmentName : '' }}
         </a>
       </div>
+
+      <div class="flex justify-end px-5 pb-4">
+        <button mat-stroked-button color="warn" type="button"
+                [disabled]="deletingId() === request.id"
+                (click)="deleteRequest(request)">
+          <mat-icon>delete</mat-icon>
+          {{ deletingId() === request.id ? 'Deleting…' : 'Delete' }}
+        </button>
+      </div>
     </div>
   `,
   providers: [DatePipe]
@@ -78,10 +87,33 @@ export class MaintenanceListComponent implements OnInit {
   loading = signal(true);
   error = signal<string | null>(null);
   expandedRequestId = signal<string | null>(null);
+  deletingId = signal<string | null>(null);
   readonly statusTone = statusTone;
 
   toggleDetails(requestId: string): void {
     this.expandedRequestId.update(current => current === requestId ? null : requestId);
+  }
+
+  deleteRequest(request: MaintenanceRequestItem): void {
+    if (!window.confirm('Delete this maintenance request?')) {
+      return;
+    }
+
+    this.deletingId.set(request.id);
+    this.service.deleteRequest(request.id).subscribe({
+      next: () => {
+        this.requests.update(items => items.filter(item => item.id !== request.id));
+        if (this.expandedRequestId() === request.id) {
+          this.expandedRequestId.set(null);
+        }
+        this.deletingId.set(null);
+        this.toast.success('Maintenance request deleted.');
+      },
+      error: error => {
+        this.deletingId.set(null);
+        this.toast.apiError(error, 'Unable to delete the maintenance request.');
+      }
+    });
   }
 
   ngOnInit(): void {

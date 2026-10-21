@@ -33,4 +33,8 @@ export class MaintenanceService {
     if (status) params = params.set('status', status);
     return this.http.get<ApiResponse<Page<MaintenanceRequestItem>>>(this.apiUrl, { params });
   }
+
+  deleteRequest(requestId: string): Observable<ApiResponse<void>> {
+    return this.http.delete<ApiResponse<void>>(`${this.apiUrl}/${requestId}`);
+  }
 }

@@ -77,7 +77,7 @@ public class MaintenanceRequestController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ORGANIZATION_OWNER')")
+    @PreAuthorize("hasRole('ORGANIZATION_OWNER') or hasRole('TENANT')")
     public ResponseEntity<ApiResponse<Void>> deleteMaintenanceRequest(@PathVariable UUID id) {
         maintenanceRequestService.deleteMaintenanceRequest(id);
         return ResponseEntity.ok(ApiResponse.success(null, "Maintenance request deleted"));

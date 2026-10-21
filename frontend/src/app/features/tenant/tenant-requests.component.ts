@@ -121,6 +121,10 @@ import { CreateTenantMaintenanceRequest, TenantMaintenanceRequest, TenantPortalS
                 <mat-icon>close</mat-icon>
                 {{ cancellingId() === item.id ? 'Cancelling…' : 'Cancel request' }}
               </button>
+              <button mat-stroked-button color="warn" type="button" [disabled]="deletingId() === item.id" (click)="deleteRequest(item)">
+                <mat-icon>delete</mat-icon>
+                {{ deletingId() === item.id ? 'Deleting…' : 'Delete' }}
+              </button>
             </ng-container>
             <button mat-stroked-button color="primary" type="button" [disabled]="completingId() === item.id" (click)="completeRequest(item)">
               <mat-icon>check_circle</mat-icon>
@@ -144,6 +148,7 @@ export class TenantRequestsComponent implements OnInit {
   editingId = signal<string | null>(null);
   cancellingId = signal<string | null>(null);
   completingId = signal<string | null>(null);
+  deletingId = signal<string | null>(null);
   submitMessage = signal<string | null>(null);
   submitSuccess = signal(false);
 
@@ -303,6 +308,25 @@ export class TenantRequestsComponent implements OnInit {
         this.completingId.set(null);
         this.submitSuccess.set(false);
         this.submitMessage.set(err?.error?.message || 'Unable to mark the maintenance request as resolved right now.');
+      }
+    });
+  }
+
+  deleteRequest(request: TenantMaintenanceRequest): void {
+    if (!window.confirm('Remove this maintenance request from your list?')) {
+      return;
+    }
+
+    this.deletingId.set(request.id);
+    this.service.deleteMaintenanceRequest(request.id).subscribe({
+      next: () => {
+        this.deletingId.set(null);
+        this.loadRequests();
+      },
+      error: err => {
+        this.deletingId.set(null);
+        this.submitSuccess.set(false);
+        this.submitMessage.set(err?.error?.message || 'Unable to delete the maintenance request right now.');
       }
     });
   }

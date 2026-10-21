@@ -177,6 +177,10 @@ export class TenantPortalService {
     return this.http.post<ApiResponse<void>>(`${this.apiUrl}/maintenance/${requestId}/complete`, {});
   }
 
+  deleteMaintenanceRequest(requestId: string): Observable<ApiResponse<void>> {
+    return this.http.delete<ApiResponse<void>>(`${this.apiUrl}/maintenance/${requestId}`);
+  }
+
   createPayment(request: CreateTenantPaymentRequest): Observable<ApiResponse<any>> {
     return this.http.post<ApiResponse<any>>(`${this.apiUrl}/payments`, request);
   }
