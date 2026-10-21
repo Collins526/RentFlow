@@ -10,6 +10,12 @@ describe('LandingComponent', () => {
   let submitInquiry: ReturnType<typeof vi.fn>;
 
   beforeEach(async () => {
+    const storage = new Map<string, string>();
+    vi.stubGlobal('localStorage', {
+      getItem: (key: string) => storage.get(key) ?? null,
+      setItem: (key: string, value: string) => storage.set(key, value),
+      removeItem: (key: string) => storage.delete(key)
+    });
     submitInquiry = vi.fn(() => of({
       success: true,
       message: 'Inquiry sent to sales',
@@ -26,7 +32,12 @@ describe('LandingComponent', () => {
     }).compileComponents();
   });
 
-  afterEach(() => TestBed.resetTestingModule());
+  afterEach(() => {
+    TestBed.resetTestingModule();
+    localStorage.removeItem('rf.theme');
+    document.documentElement.removeAttribute('data-theme');
+    vi.unstubAllGlobals();
+  });
 
   it('creates', () => {
     const fixture = TestBed.createComponent(LandingComponent);
@@ -41,6 +52,28 @@ describe('LandingComponent', () => {
     expect(compiled.querySelector('h1')?.textContent).toContain('Rent collection');
     expect(compiled.querySelector('a[href="/register"]')).toBeTruthy();
     expect(compiled.querySelector('a[href="/login"]')).toBeTruthy();
+  });
+
+  it('toggles between light and dark themes and remembers the selection', () => {
+    localStorage.setItem('rf.theme', 'dark');
+    const fixture = TestBed.createComponent(LandingComponent);
+    fixture.detectChanges();
+
+    const themeButton = fixture.nativeElement.querySelector(
+      'button[aria-label="Switch to light theme"]'
+    ) as HTMLButtonElement;
+    expect(themeButton).toBeTruthy();
+    expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
+
+    themeButton.click();
+    fixture.detectChanges();
+    expect(document.documentElement.getAttribute('data-theme')).toBe('light');
+    expect(localStorage.getItem('rf.theme')).toBe('light');
+    expect(fixture.nativeElement.querySelector('button[aria-label="Switch to dark theme"]')).toBeTruthy();
+
+    (fixture.nativeElement.querySelector('button[aria-label="Switch to dark theme"]') as HTMLButtonElement).click();
+    expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
+    expect(localStorage.getItem('rf.theme')).toBe('dark');
   });
 
   it('routes paid plan trial buttons to their selected checkout plans', () => {

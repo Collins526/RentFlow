@@ -1,5 +1,5 @@
 import { Component, HostListener, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DOCUMENT } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -51,6 +51,8 @@ interface Testimonial {
   tone: string;
 }
 
+const THEME_KEY = 'rf.theme';
+
 /**
  * Public marketing page.
  *
@@ -66,6 +68,7 @@ interface Testimonial {
   styleUrl: './landing.component.scss'
 })
 export class LandingComponent {
+  private readonly document = inject(DOCUMENT);
   private readonly formBuilder = inject(FormBuilder);
   private readonly salesInquiryService = inject(SalesInquiryService);
 
@@ -75,6 +78,9 @@ export class LandingComponent {
 
   /** Drives the header's border and shadow once the hero has scrolled away. */
   readonly scrolled = signal(false);
+
+  /** The site theme is shared across routes and remembered between visits. */
+  readonly darkTheme = signal(readThemePreference());
 
   /** Collapses the nav into a drawer below the `lg` breakpoint. */
   readonly menuOpen = signal(false);
@@ -101,6 +107,10 @@ export class LandingComponent {
     { label: 'Pricing', target: 'pricing' },
     { label: 'FAQ', target: 'faq' }
   ];
+
+  constructor() {
+    this.applyTheme();
+  }
 
   readonly features: Feature[] = [
     {
@@ -282,6 +292,19 @@ export class LandingComponent {
     this.menuOpen.set(false);
   }
 
+  toggleTheme(): void {
+    this.darkTheme.update(dark => !dark);
+    this.applyTheme();
+    writeThemePreference(this.darkTheme());
+  }
+
+  private applyTheme(): void {
+    this.document.documentElement.setAttribute(
+      'data-theme',
+      this.darkTheme() ? 'dark' : 'light'
+    );
+  }
+
   openSalesForm(): void {
     this.salesError.set('');
     this.salesFormOpen.set(true);
@@ -344,5 +367,21 @@ export class LandingComponent {
     const headerOffset = 72;
     const top = element.getBoundingClientRect().top + window.scrollY - headerOffset;
     window.scrollTo({ top, behavior: 'smooth' });
+  }
+}
+
+function readThemePreference(): boolean {
+  try {
+    return localStorage.getItem(THEME_KEY) !== 'light';
+  } catch {
+    return true;
+  }
+}
+
+function writeThemePreference(dark: boolean): void {
+  try {
+    localStorage.setItem(THEME_KEY, dark ? 'dark' : 'light');
+  } catch {
+    // Theme selection still works when browser storage is unavailable.
   }
 }

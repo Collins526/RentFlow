@@ -27,6 +27,30 @@ html {
   );
 }
 
+html[data-theme='light'] {
+  color-scheme: light;
+  --rf-bg: #ffffff;
+  --rf-surface: #ffffff;
+  --rf-surface-raised: #f8fafc;
+  --rf-track: #f1f5f9;
+  --rf-line: #e2e8f0;
+  --rf-ink: #0f172a;
+  --rf-muted: #475569;
+  --rf-brand: #4f46e5;
+
+  @include mat.theme(
+    (
+      color: (
+        theme-type: light,
+        primary: mat.$azure-palette,
+        tertiary: mat.$blue-palette,
+      ),
+      typography: Roboto,
+      density: 0,
+    )
+  );
+}
+
 html,
 body {
   height: 100%;
@@ -44,136 +68,138 @@ body {
   color: var(--rf-ink);
 }
 
-[class~="bg-white"],
-[class~="bg-white/95"],
-[class~="!bg-white"] {
-  background-color: var(--rf-surface) !important;
-}
+html:not([data-theme='light']) {
+  [class~="bg-white"],
+  [class~="bg-white/95"],
+  [class~="!bg-white"] {
+    background-color: var(--rf-surface) !important;
+  }
 
-[class~="bg-gray-50"],
-[class~="bg-slate-50"] {
-  background-color: var(--rf-surface-raised) !important;
-}
+  [class~="bg-gray-50"],
+  [class~="bg-slate-50"] {
+    background-color: var(--rf-surface-raised) !important;
+  }
 
-[class~="bg-gray-100"],
-[class~="bg-slate-100"],
-[class~="bg-slate-200"] {
-  background-color: var(--rf-track) !important;
-}
+  [class~="bg-gray-100"],
+  [class~="bg-slate-100"],
+  [class~="bg-slate-200"] {
+    background-color: var(--rf-track) !important;
+  }
 
-[class~="bg-indigo-50"],
-[class~="bg-indigo-100"],
-[class~="bg-violet-50"],
-[class~="bg-violet-100"],
-[class~="bg-blue-50"] {
-  background-color: #1b2545 !important;
-}
+  [class~="bg-indigo-50"],
+  [class~="bg-indigo-100"],
+  [class~="bg-violet-50"],
+  [class~="bg-violet-100"],
+  [class~="bg-blue-50"] {
+    background-color: #1b2545 !important;
+  }
 
-[class~="bg-sky-50"],
-[class~="bg-blue-100"] {
-  background-color: #102c48 !important;
-}
+  [class~="bg-sky-50"],
+  [class~="bg-blue-100"] {
+    background-color: #102c48 !important;
+  }
 
-[class~="bg-emerald-50"],
-[class~="bg-emerald-100"],
-[class~="bg-green-50"],
-[class~="bg-green-100"] {
-  background-color: #0f3a28 !important;
-}
+  [class~="bg-emerald-50"],
+  [class~="bg-emerald-100"],
+  [class~="bg-green-50"],
+  [class~="bg-green-100"] {
+    background-color: #0f3a28 !important;
+  }
 
-[class~="bg-amber-50"],
-[class~="bg-amber-100"],
-[class~="bg-yellow-50"] {
-  background-color: #3d2b0a !important;
-}
+  [class~="bg-amber-50"],
+  [class~="bg-amber-100"],
+  [class~="bg-yellow-50"] {
+    background-color: #3d2b0a !important;
+  }
 
-[class~="bg-rose-50"],
-[class~="bg-rose-100"],
-[class~="bg-red-50"] {
-  background-color: #42140f !important;
-}
+  [class~="bg-rose-50"],
+  [class~="bg-rose-100"],
+  [class~="bg-red-50"] {
+    background-color: #42140f !important;
+  }
 
-[class~="text-gray-900"],
-[class~="text-slate-900"],
-[class~="text-gray-800"],
-[class~="text-slate-800"] {
-  color: var(--rf-ink) !important;
-}
+  [class~="text-gray-900"],
+  [class~="text-slate-900"],
+  [class~="text-gray-800"],
+  [class~="text-slate-800"] {
+    color: var(--rf-ink) !important;
+  }
 
-[class~="text-gray-700"],
-[class~="text-slate-700"],
-[class~="text-gray-600"],
-[class~="text-slate-600"],
-[class~="text-gray-500"],
-[class~="text-slate-500"] {
-  color: var(--rf-muted) !important;
-}
+  [class~="text-gray-700"],
+  [class~="text-slate-700"],
+  [class~="text-gray-600"],
+  [class~="text-slate-600"],
+  [class~="text-gray-500"],
+  [class~="text-slate-500"] {
+    color: var(--rf-muted) !important;
+  }
 
-[class~="text-gray-400"],
-[class~="text-slate-400"] {
-  color: #8a97ad !important;
-}
+  [class~="text-gray-400"],
+  [class~="text-slate-400"] {
+    color: #8a97ad !important;
+  }
 
-[class~="text-indigo-600"],
-[class~="text-indigo-700"],
-[class~="text-violet-700"],
-[class~="text-blue-600"],
-[class~="text-blue-700"] {
-  color: var(--rf-brand) !important;
-}
+  [class~="text-indigo-600"],
+  [class~="text-indigo-700"],
+  [class~="text-violet-700"],
+  [class~="text-blue-600"],
+  [class~="text-blue-700"] {
+    color: var(--rf-brand) !important;
+  }
 
-[class~="text-emerald-600"],
-[class~="text-emerald-700"],
-[class~="text-emerald-800"],
-[class~="text-green-700"],
-[class~="text-green-800"] {
-  color: #6ce9a6 !important;
-}
+  [class~="text-emerald-600"],
+  [class~="text-emerald-700"],
+  [class~="text-emerald-800"],
+  [class~="text-green-700"],
+  [class~="text-green-800"] {
+    color: #6ce9a6 !important;
+  }
 
-[class~="text-amber-600"],
-[class~="text-amber-700"],
-[class~="text-amber-800"] {
-  color: #fec84b !important;
-}
+  [class~="text-amber-600"],
+  [class~="text-amber-700"],
+  [class~="text-amber-800"] {
+    color: #fec84b !important;
+  }
 
-[class~="text-rose-700"],
-[class~="text-red-600"],
-[class~="text-red-800"] {
-  color: #fda29b !important;
-}
+  [class~="text-rose-700"],
+  [class~="text-red-600"],
+  [class~="text-red-800"] {
+    color: #fda29b !important;
+  }
 
-[class~="text-sky-600"],
-[class~="text-blue-800"] {
-  color: #93c5fd !important;
-}
+  [class~="text-sky-600"],
+  [class~="text-blue-800"] {
+    color: #93c5fd !important;
+  }
 
-[class~="border-gray-100"],
-[class~="border-gray-200"],
-[class~="border-slate-100"],
-[class~="border-slate-200"],
-[class~="border-slate-300"] {
-  border-color: var(--rf-line) !important;
-}
+  [class~="border-gray-100"],
+  [class~="border-gray-200"],
+  [class~="border-slate-100"],
+  [class~="border-slate-200"],
+  [class~="border-slate-300"] {
+    border-color: var(--rf-line) !important;
+  }
 
-[class~="border-indigo-100"],
-[class~="border-indigo-200"],
-[class~="border-blue-200"] {
-  border-color: #34416b !important;
-}
+  [class~="border-indigo-100"],
+  [class~="border-indigo-200"],
+  [class~="border-blue-200"] {
+    border-color: #34416b !important;
+  }
 
-[class~="border-emerald-200"],
-[class~="border-green-200"] {
-  border-color: #17603f !important;
-}
+  [class~="border-emerald-200"],
+  [class~="border-green-200"] {
+    border-color: #17603f !important;
+  }
 
-[class~="border-amber-200"] {
-  border-color: #755313 !important;
-}
+  [class~="border-amber-200"] {
+    border-color: #755313 !important;
+  }
 
-[class~="border-rose-200"],
-[class~="border-red-100"],
-[class~="border-red-200"] {
-  border-color: #74271f !important;
+  [class~="border-rose-200"],
+  [class~="border-red-100"],
+  [class~="border-red-200"] {
+    border-color: #74271f !important;
+  }
 }
 
 .mat-mdc-menu-panel,

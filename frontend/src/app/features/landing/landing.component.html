@@ -33,6 +33,13 @@
       </nav>
 
       <div class="hidden items-center gap-3 lg:flex">
+        <button type="button"
+                class="grid h-10 w-10 place-items-center rounded-lg text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900"
+                (click)="toggleTheme()"
+                [attr.aria-label]="darkTheme() ? 'Switch to light theme' : 'Switch to dark theme'"
+                [attr.title]="darkTheme() ? 'Switch to light theme' : 'Switch to dark theme'">
+          <mat-icon>{{ darkTheme() ? 'light_mode' : 'dark_mode' }}</mat-icon>
+        </button>
         <a mat-stroked-button routerLink="/login" class="!rounded-lg">Sign in</a>
         <a mat-flat-button color="primary" routerLink="/register" class="!rounded-lg !px-5">
           Get started
@@ -40,14 +47,23 @@
       </div>
 
       <!-- Mobile trigger -->
-      <button type="button"
-              class="grid h-10 w-10 place-items-center rounded-lg text-slate-700 hover:bg-slate-100 lg:hidden"
-              (click)="toggleMenu()"
-              [attr.aria-expanded]="menuOpen()"
-              aria-controls="landing-mobile-nav"
-              aria-label="Toggle navigation">
-        <mat-icon>{{ menuOpen() ? 'close' : 'menu' }}</mat-icon>
-      </button>
+      <div class="flex items-center gap-1 lg:hidden">
+        <button type="button"
+                class="grid h-10 w-10 place-items-center rounded-lg text-slate-600 hover:bg-slate-100"
+                (click)="toggleTheme()"
+                [attr.aria-label]="darkTheme() ? 'Switch to light theme' : 'Switch to dark theme'"
+                [attr.title]="darkTheme() ? 'Switch to light theme' : 'Switch to dark theme'">
+          <mat-icon>{{ darkTheme() ? 'light_mode' : 'dark_mode' }}</mat-icon>
+        </button>
+        <button type="button"
+                class="grid h-10 w-10 place-items-center rounded-lg text-slate-700 hover:bg-slate-100"
+                (click)="toggleMenu()"
+                [attr.aria-expanded]="menuOpen()"
+                aria-controls="landing-mobile-nav"
+                aria-label="Toggle navigation">
+          <mat-icon>{{ menuOpen() ? 'close' : 'menu' }}</mat-icon>
+        </button>
+      </div>
     </div>
 
     <!-- Mobile drawer -->
@@ -199,7 +215,7 @@
   </section>
 
   <!-- ============================ Features =========================== -->
-  <section id="features" class="scroll-mt-20 border-t border-slate-100 bg-[#0b1220] py-20 sm:py-24">
+  <section id="features" class="scroll-mt-20 border-t border-slate-100 bg-[var(--rf-bg)] py-20 sm:py-24">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
       <div class="mx-auto max-w-2xl text-center">
         <p class="text-sm font-semibold uppercase tracking-wider text-indigo-600">Features</p>
@@ -254,7 +270,7 @@
   </section>
 
   <!-- ============================ Modules ============================ -->
-  <section id="modules" class="scroll-mt-20 border-t border-slate-100 bg-[#0b1220] py-20 sm:py-24">
+  <section id="modules" class="scroll-mt-20 border-t border-slate-100 bg-[var(--rf-bg)] py-20 sm:py-24">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
       <div class="mx-auto max-w-2xl text-center">
         <p class="text-sm font-semibold uppercase tracking-wider text-indigo-600">Modules</p>
@@ -398,16 +414,16 @@
   </section>
 
   <!-- =========================== Security =========================== -->
-  <section class="border-t border-slate-100 bg-slate-900 py-20 sm:py-24">
+  <section class="border-t border-slate-100 bg-[var(--rf-surface-raised)] py-20 sm:py-24">
     <div class="mx-auto grid max-w-7xl gap-12 px-4 sm:px-6 lg:grid-cols-2 lg:px-8">
       <div>
-        <span class="grid h-11 w-11 place-items-center rounded-xl bg-white/10 text-white">
+        <span class="grid h-11 w-11 place-items-center rounded-xl bg-indigo-50 text-indigo-600">
           <mat-icon class="!h-5 !w-5 !text-xl">verified_user</mat-icon>
         </span>
-        <h2 class="mt-5 text-3xl font-bold tracking-tight text-white sm:text-4xl">
+        <h2 class="mt-5 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
           Your tenants' data stays yours
         </h2>
-        <p class="mt-4 text-lg leading-relaxed text-slate-300">
+        <p class="mt-4 text-lg leading-relaxed text-slate-600">
           RentFlow is multi-tenant by design. Every query is scoped to the organization that
           owns it, so one company can never read another's portfolio.
         </p>
@@ -415,9 +431,9 @@
 
       <ul class="space-y-4">
         <li *ngFor="let point of securityPoints"
-            class="flex items-start gap-3 rounded-xl bg-white/5 p-4">
-          <mat-icon class="!h-5 !w-5 !text-xl mt-0.5 text-emerald-400">check_circle</mat-icon>
-          <span class="text-sm text-slate-200">{{ point }}</span>
+            class="flex items-start gap-3 rounded-xl bg-white p-4">
+          <mat-icon class="!h-5 !w-5 !text-xl mt-0.5 text-emerald-600">check_circle</mat-icon>
+          <span class="text-sm text-slate-700">{{ point }}</span>
         </li>
       </ul>
     </div>
@@ -500,7 +516,7 @@
   </section>
 
   <!-- ========================= Testimonials ========================= -->
-  <section class="border-t border-slate-100 bg-[#0b1220] py-20 sm:py-24">
+  <section class="border-t border-slate-100 bg-[var(--rf-bg)] py-20 sm:py-24">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
       <div class="mx-auto max-w-2xl text-center">
         <p class="text-sm font-semibold uppercase tracking-wider text-indigo-600">Testimonials</p>

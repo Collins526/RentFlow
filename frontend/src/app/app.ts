@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
+import { DOCUMENT } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
 
 /**
@@ -11,4 +12,17 @@ import { RouterOutlet } from '@angular/router';
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })
-export class App {}
+export class App {
+  private readonly document = inject(DOCUMENT);
+
+  constructor() {
+    try {
+      const theme = localStorage.getItem('rf.theme');
+      if (theme === 'light' || theme === 'dark') {
+        this.document.documentElement.setAttribute('data-theme', theme);
+      }
+    } catch {
+      // The dark theme remains the default when browser storage is unavailable.
+    }
+  }
+}
