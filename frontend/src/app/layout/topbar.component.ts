@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, input, OnInit, output } from '@angular/core';
+import { Component, DestroyRef, inject, input, OnInit, output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NavigationEnd, Router, RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
@@ -9,9 +9,10 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatBadgeModule } from '@angular/material/badge';
 import { AuthService } from '../core/services/auth.service';
 import { NotificationService } from '../core/services/notification/notification.service';
+import { MaintenanceRequestItem, MaintenanceService } from '../core/services/maintenance/maintenance.service';
 import { BreadcrumbsComponent } from './breadcrumbs.component';
 import { Role } from '../core/auth/roles';
-import { filter } from 'rxjs';
+import { catchError, filter, of, switchMap, timer } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 /**
@@ -51,15 +52,47 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
       <div class="ml-auto flex items-center gap-1">
         <a *ngIf="isTenant()" mat-icon-button
                 routerLink="/tenant"
-                class="!hidden sm:!inline-flex"
+          class="!hidden sm:!inline-flex"
                 matTooltip="Notifications"
                 [matBadge]="notificationService.unreadCount() ?? 0"
                 [matBadgeHidden]="!notificationService.unreadCount()"
                 matBadgeColor="warn"
                 matBadgeSize="small"
                 [attr.aria-label]="'Notifications, ' + (notificationService.unreadCount() ?? 0) + ' unread'">
-          <mat-icon>notifications_none</mat-icon>
+                  <mat-icon>notifications_none</mat-icon>
         </a>
+
+        <button *ngIf="isOrganizationOwner()" mat-icon-button
+                [matMenuTriggerFor]="ownerNotificationsMenu"
+                [matBadge]="newMaintenanceCount()"
+                [matBadgeHidden]="!newMaintenanceCount()"
+                matBadgeColor="warn"
+                matBadgeSize="small"
+                [attr.aria-label]="newMaintenanceCount() + ' new maintenance requests'"
+                matTooltip="Notifications">
+          <mat-icon>notifications_none</mat-icon>
+        </button>
+
+        <mat-menu #ownerNotificationsMenu="matMenu">
+          <button mat-menu-item disabled class="!opacity-100">
+            <span class="font-semibold text-slate-900">New tenant requests</span>
+          </button>
+          <button *ngFor="let request of newMaintenanceRequests()" mat-menu-item routerLink="/maintenance">
+            <span class="flex min-w-0 flex-col leading-tight">
+              <span class="max-w-64 truncate font-medium">{{ request.title }}</span>
+              <span class="max-w-64 truncate text-xs text-slate-500">
+                {{ request.tenantName || 'Tenant' }}<span *ngIf="request.unitNumber"> · Unit {{ request.unitNumber }}</span>
+              </span>
+            </span>
+          </button>
+          <button *ngIf="newMaintenanceRequests().length === 0" mat-menu-item disabled>
+            No new tenant requests
+          </button>
+          <button mat-menu-item routerLink="/maintenance">
+            <mat-icon>open_in_new</mat-icon>
+            View maintenance requests
+          </button>
+        </mat-menu>
 
         <button mat-button [matMenuTriggerFor]="profileMenu" class="!px-2" aria-label="Account menu">
           <div class="flex items-center gap-2">
@@ -100,8 +133,11 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 export class TopbarComponent implements OnInit {
   protected auth = inject(AuthService);
   protected notificationService = inject(NotificationService);
+  private readonly maintenanceService = inject(MaintenanceService);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
+  protected newMaintenanceRequests = signal<MaintenanceRequestItem[]>([]);
+  protected newMaintenanceCount = signal(0);
 
   sidebarCollapsed = input(false);
   toggleSidebar = output<void>();
@@ -114,6 +150,18 @@ export class TopbarComponent implements OnInit {
         takeUntilDestroyed(this.destroyRef)
       ).subscribe(() => this.notificationService.refreshUnreadCount());
     }
+
+    if (this.isOrganizationOwner()) {
+      timer(0, 60_000).pipe(
+        switchMap(() => this.maintenanceService.getRequests(0, 5, 'REQUESTED').pipe(
+          catchError(() => of(null))
+        )),
+        takeUntilDestroyed(this.destroyRef)
+      ).subscribe(response => {
+        this.newMaintenanceCount.set(response?.data?.totalElements ?? 0);
+        this.newMaintenanceRequests.set(response?.data?.content ?? []);
+      });
+    }
   }
 
   protected canManageOrganization(): boolean {
@@ -122,5 +170,9 @@ export class TopbarComponent implements OnInit {
 
   protected isTenant(): boolean {
     return this.auth.hasRole(Role.Tenant);
+  }
+
+  protected isOrganizationOwner(): boolean {
+    return this.auth.hasRole(Role.OrganizationOwner) && !this.auth.hasRole(Role.PlatformAdmin);
   }
 }
